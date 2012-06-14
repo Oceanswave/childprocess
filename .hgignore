@@ -1,0 +1,49 @@
+# Actual Template under http://wiki.maierhofer.de/Mercurial-VCS-Main.ashx
+syntax: glob
+
+# File Types
+*.obj
+*.pdb
+*.user
+*.aps
+*.pch
+*.vspscc
+*.vssscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.bak
+*.cache
+*.ilk
+*.log
+*.lib
+*.sbr
+*.scc
+*.sdf
+*.opensdf
+*.[Pp]ublish.xml
+*.resharper
+*.zip
+*.7z
+*.nupkg
+[Tt]est[Rr]esult*
+[Bb]uild[Ll]og.*
+
+# Files
+[Tt]humbs.db
+StyleCop.Cache
+
+# Folders
+[Bb]in/
+[Dd]ebug*/
+[Oo]bj/
+Win32/
+x64/
+ipch/
+[Pp]ackages/*/*
+[Rr]elease*/
+_ReSharper*/
+[Hh]elp/*
