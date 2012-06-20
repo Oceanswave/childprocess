@@ -15,19 +15,21 @@ namespace ChildProcess
     {
         static void Main(string[] args)
         {
-            while (!Debugger.IsAttached)
-            {
-                Thread.Sleep(1000);
-            }
-
             var instance = new CustomizedChildProcessInstance();
+            instance.ProcessStateChanged += new ChildProcessInstance.ProcessStateChangedEventHandler(instance_ProcessStateChanged);
+            Console.WriteLine("Child begins with ProcessWatchdog Loop");
             while( ! instance.Shutdown )
             {
                 instance.ProcessWatchdog();
                 Thread.Sleep(1000);
-                Console.WriteLine("Child: Here we are");
             }
 
+        }
+
+        static void instance_ProcessStateChanged(object sender, ProcessStateChangedEventArgs e)
+        {
+            var instance = (CustomizedChildProcessInstance) sender;
+            Console.WriteLine("Child Process State Changed: " + e.Action );
         }
 
     }

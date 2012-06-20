@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="IExtendedParentChildIpc.cs" company="">
+// <copyright file="CustomizedChildProcess.cs" company="">
 // TODO: Update copyright text.
 // </copyright>
 // -----------------------------------------------------------------------
@@ -9,16 +9,13 @@ namespace ChildProcesses
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.ServiceModel;
     using System.Text;
 
     /// <summary>
-    /// TODO: Update summary.
+    /// Customizing the child process data hold in <see cref="ChildProcessManager"/>
     /// </summary>
-    [ServiceContract]
-    public interface IExtendedParentChildIpc : IParentChildIpc
+    public class CustomizedChildProcess : ChildProcess
     {
-        [OperationContract]
-        void SendCustomMessageToClient(string message);
+
     }
 }

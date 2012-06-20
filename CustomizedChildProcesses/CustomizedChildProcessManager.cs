@@ -16,9 +16,19 @@ namespace ChildProcesses
     /// </summary>
     public class CustomizedChildProcessManager : ChildProcessManager
     {
-        public override Type GetIChildParentIpcType()
+        protected override Type GetIChildParentIpcType()
         {
-            return typeof(IChildParentIpc);
+            return typeof(IExtendedChildParentIpc);
+        }
+
+        protected override Type GetChildParentIpcType()
+        {
+            return typeof(ExtendedChildParentIpc);
+        }
+
+        protected override Type GetIParentChildIpcType()
+        {
+            return typeof(IExtendedParentChildIpc);
         }
     }
 }

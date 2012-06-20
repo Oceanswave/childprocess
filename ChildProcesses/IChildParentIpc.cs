@@ -19,6 +19,9 @@ namespace ChildProcesses
     {
         #region Public Methods
 
+        [OperationContract]
+        void ChildIpcInit(int processId);
+
         /// <summary>
         /// The child alive.
         /// </summary>

@@ -16,12 +16,12 @@ namespace ChildProcesses
     /// </summary>
     public class CustomizedChildProcessInstance : ChildProcessInstance
     {
-        public override Type GetIChildParentIpcType()
+        protected override Type GetIChildParentIpcType()
         {
             return typeof(IExtendedChildParentIpc);
         }
 
-        public override Type GetParentChildIpcType()
+        protected override Type GetParentChildIpcType()
         {
             return typeof(ExtendedParentChildIpc);
         }

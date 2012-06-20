@@ -25,6 +25,11 @@ namespace ChildProcesses
 
         #region Public Methods
 
+        public void ParentIpcInit()
+        {
+            this.ChildProcessInstance.OnParentIpcInit();
+        }
+
         /// <summary>
         /// The parent alive.
         /// </summary>

@@ -10,6 +10,7 @@
 namespace ChildProcesses
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
@@ -18,7 +19,7 @@ namespace ChildProcesses
     /// <summary>
     /// The child process manager.
     /// </summary>
-    public class ChildProcessManager : ProcessInstance
+    public class ChildProcessManager : ProcessInstance, IEnumerable
     {
         #region Constants and Fields
 
@@ -116,7 +117,7 @@ namespace ChildProcesses
         /// </summary>
         /// <returns>
         /// </returns>
-        public virtual Type GetChildParentIpcType()
+        protected virtual Type GetChildParentIpcType()
         {
             return typeof(ChildParentIpc);
         }
@@ -126,10 +127,16 @@ namespace ChildProcesses
         /// </summary>
         /// <returns>
         /// </returns>
-        public virtual Type GetIChildParentIpcType()
+        protected virtual Type GetIChildParentIpcType()
         {
             return typeof(IChildParentIpc);
         }
+
+        protected virtual Type GetIParentChildIpcType()
+        {
+            return typeof(IParentChildIpc);
+        }
+
 
         /// <summary>
         /// The process watchdog.
@@ -157,6 +164,20 @@ namespace ChildProcesses
                 }
                 else
                 {
+                    if (!childProcess.ipcChannelAvail && childProcess.ParentChildIpc != null)
+                    {
+                        try
+                        {
+                            childProcess.ParentChildIpc.ParentIpcInit();
+                            childProcess.ipcChannelAvail = true;
+                            this.RaiseProcessStateChangedEvent(childProcess, ProcessStateChangedAction.IpcChannelAvail, null);
+                        }
+                        catch (Exception)
+                        {
+                            childProcess.ParentChildIpc = null;
+                        }
+                    }
+
                     if (sendAliveMessages)
                     {
                         try
@@ -168,7 +189,7 @@ namespace ChildProcesses
                         }
                         catch (Exception)
                         {
-                            throw;
+                            childProcess.ParentChildIpc = null;  
                         }
                     }
 
@@ -273,17 +294,6 @@ namespace ChildProcesses
         #region Methods
 
         /// <summary>
-        /// The do on child alive.
-        /// </summary>
-        /// <param name="childProcessId">
-        /// The child process id. 
-        /// </param>
-        internal static void DoOnChildAlive(int childProcessId)
-        {
-            Current.OnChildAlive(childProcessId);
-        }
-
-        /// <summary>
         /// The raise process state changed event.
         /// </summary>
         /// <param name="childProcess">
@@ -304,20 +314,36 @@ namespace ChildProcesses
             }
         }
 
+        protected internal virtual void OnChildIpcInit(int childProcessId)
+        {
+            this.OnChildAlive(childProcessId);
+        }
+
+
         /// <summary>
         /// The on child alive.
         /// </summary>
         /// <param name="childProcessId">
         /// The child process id. 
         /// </param>
-        protected virtual void OnChildAlive(int childProcessId)
+        protected internal virtual void OnChildAlive(int childProcessId)
         {
-            var callback = OperationContext.Current.GetCallbackChannel<IParentChildIpc>();
+
 
             ChildProcess child = this.TryGetChildProcess(childProcessId);
             if (child != null)
             {
-                child.ParentChildIpc = callback;
+                if (child.ParentChildIpc == null)
+                {
+                    var operationContext = OperationContext.Current;
+                    var operationContextType = operationContext.GetType();
+                    var getCallbackChannelMethod = operationContextType.GetMethod("GetCallbackChannel");
+
+                    getCallbackChannelMethod = getCallbackChannelMethod.MakeGenericMethod(this.GetIParentChildIpcType());
+                    var callback = (IParentChildIpc)getCallbackChannelMethod.Invoke(operationContext, null);
+                    child.ParentChildIpc = callback;
+                }
+
                 child.watchdogTimeout = false;
                 child.lastTimeAlive = DateTime.Now;
             }
@@ -355,8 +381,9 @@ namespace ChildProcesses
                     this.ipcHost.Close();
                     this.ipcHost = null;
                 }
-
-                var newHost = new ServiceHost(this.GetChildParentIpcType(), new[] { new Uri("net.pipe://localhost/" + this.GetIpcUrlPrefix() + "/" + this.CurrentProcess.Id) });
+                var ipcEndpint = (ChildParentIpc) Activator.CreateInstance(this.GetChildParentIpcType());
+                ipcEndpint.Manager = this;
+                var newHost = new ServiceHost(ipcEndpint, new[] { new Uri("net.pipe://localhost/" + this.GetIpcUrlPrefix() + "/" + this.CurrentProcess.Id) });
                 newHost.AddServiceEndpoint(this.GetIChildParentIpcType(), new NetNamedPipeBinding(), "ParentChildIpc");
                 newHost.Faulted += new EventHandler(this.IpcHost_Faulted);
                 newHost.Open();
@@ -365,5 +392,16 @@ namespace ChildProcesses
         }
 
         #endregion
+
+        public IEnumerator GetEnumerator()
+        {
+            List<ChildProcess> currentChildProcesses;
+            lock (this.childProcessesLock)
+            {
+                currentChildProcesses = this.childProcesses.Values.ToList();
+            }
+
+            return currentChildProcesses.GetEnumerator();
+        }
     }
 }

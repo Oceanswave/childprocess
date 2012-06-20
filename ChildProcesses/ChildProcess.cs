@@ -53,6 +53,7 @@ namespace ChildProcesses
         /// </summary>
         public ChildProcess()
         {
+            lastTimeAlive = DateTime.Now;
         }
 
         #endregion

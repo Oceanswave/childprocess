@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <version>1.0.1</version>
+    <authors>Thomas Maierhofer</authors>
+    <owners />
+    <licenseUrl>http://childprocess.codeplex.com/</licenseUrl>
+    <projectUrl>http://wiki.maierhofer.de/project-child-process.ashx</projectUrl>
+    <id>ChildProcesses</id>
+    <title>ChildProcesses - Child Process Management for .NET</title>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>
+      ChildProcesses is a child process management library for the .NET framework.
+      It allows to create child processes, and provides bidirectional extendable interprocess communication based on WCF and NamedPipes out of the box.
+      Child and parent processes monitor each other and notify about termination or other events.
+      Child processes are an alternative to AppDomains when parent must continue if the child crashes.
+      It is also possible to mix 32Bit and 64 Bit processes.
+    </description>
+    <summary>ChildProcesses is a child process management library for the .NET framework.</summary>
+    <releaseNotes>
+      Plattform: .NET 4.0 Client Profile
+      - Bugfixes
+      - Impoved Parent / Clild IPC
+    </releaseNotes>    
+    <copyright>Maierhofer Software, Germany</copyright>
+    <language>en-US</language>
+    <tags>process spawn child parent AppDomain</tags>
+  </metadata>
+  <files>
+    <file src="ChildProcesses\bin\Release\ChildProcesses.dll" target="lib\net\ChildProcesses.dll" />
+  </files>
+</package>

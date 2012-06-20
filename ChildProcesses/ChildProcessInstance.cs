@@ -45,10 +45,16 @@ namespace ChildProcesses
         /// </summary>
         private DateTime lastTimeAlive;
 
+
+
         /// <summary>
         ///   The parent process exited.
         /// </summary>
         private bool parentProcessExited;
+
+
+        private bool ipcChannelAvailable;
+        private bool ipcChannelAvailableMsgSend;
 
         /// <summary>
         ///   The watchdog timeout.
@@ -74,7 +80,19 @@ namespace ChildProcesses
             this.ShutdownOnParentExit = true;
             this.ParentProcess = this.CurrentProcess.GetParent();
             this.lastTimeAlive = DateTime.Now;
-            this.ResetIpcChannel();
+            try
+            {
+                this.ResetIpcChannel();
+                lock( ipcChannelLock )
+                {
+                    ipcChannel.ChildIpcInit(CurrentProcess.Id);
+                }
+            }
+            catch( Exception e)
+            {
+                // TODO Implement handling
+                throw;
+            }
         }
 
         #endregion
@@ -150,7 +168,7 @@ namespace ChildProcesses
         /// </summary>
         /// <returns>
         /// </returns>
-        public virtual Type GetIChildParentIpcType()
+        protected virtual Type GetIChildParentIpcType()
         {
             return typeof(IChildParentIpc);
         }
@@ -160,7 +178,7 @@ namespace ChildProcesses
         /// </summary>
         /// <returns>
         /// </returns>
-        public virtual Type GetParentChildIpcType()
+        protected virtual Type GetParentChildIpcType()
         {
             return typeof(ParentChildIpc);
         }
@@ -215,6 +233,12 @@ namespace ChildProcesses
                     throw;
                 }
             }
+
+            if( ipcChannelAvailable && ! ipcChannelAvailableMsgSend )
+            {
+                ipcChannelAvailableMsgSend = true;
+                this.RaiseProcessStateChangedEvent(ProcessStateChangedAction.IpcChannelAvail, null);
+            }
         }
 
         #endregion
@@ -228,6 +252,10 @@ namespace ChildProcesses
         {
             this.watchdogTimeout = false;
             this.lastTimeAlive = DateTime.Now;
+            if( ! ipcChannelAvailable )
+            {
+                ipcChannelAvailable = true;
+            }
         }
 
         /// <summary>
@@ -302,5 +330,10 @@ namespace ChildProcesses
         }
 
         #endregion
+
+        public void OnParentIpcInit()
+        {
+            this.OnParentAlive();
+        }
     }
 }

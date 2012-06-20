@@ -9,12 +9,21 @@
 
 namespace ChildProcesses
 {
+    using System.ServiceModel;
+
     /// <summary>
     /// TODO: Update summary.
     /// </summary>
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     public class ChildParentIpc : IChildParentIpc
     {
+        public ChildProcessManager Manager { get; internal set; }
         #region Public Methods
+
+        public void ChildIpcInit(int processId)
+        {
+            
+        }
 
         /// <summary>
         /// The child alive.
@@ -24,7 +33,7 @@ namespace ChildProcesses
         /// </param>
         public void ChildAlive(int processId)
         {
-            ChildProcessManager.DoOnChildAlive(processId);
+            Manager.OnChildAlive(processId);
         }
 
         #endregion
