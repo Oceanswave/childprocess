@@ -16,5 +16,9 @@ namespace ChildProcesses
     /// </summary>
     public class ExtendedChildParentIpc : ChildParentIpc, IExtendedChildParentIpc 
     {
+        public void SendCustomMessageToParent(string message)
+        {
+            Console.WriteLine("Custm Message From Child: " + message);
+        }
     }
 }

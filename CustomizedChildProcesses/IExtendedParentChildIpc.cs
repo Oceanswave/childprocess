@@ -19,6 +19,6 @@ namespace ChildProcesses
     public interface IExtendedParentChildIpc : IParentChildIpc
     {
         [OperationContract]
-        void SendCustomMessageToClient(string message);
+        void SendCustomMessageToChild(string message);
     }
 }

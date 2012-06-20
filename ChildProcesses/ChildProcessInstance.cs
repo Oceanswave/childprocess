@@ -18,6 +18,16 @@ namespace ChildProcesses
     /// </summary>
     public class ChildProcessInstance : ProcessInstance
     {
+        public IChildParentIpc ChildParentIpc
+        {
+            get
+            {
+                lock(ipcChannelLock)
+                {
+                    return ipcChannel;
+                }
+            }
+        }
         #region Constants and Fields
 
         /// <summary>
@@ -55,6 +65,14 @@ namespace ChildProcesses
 
         private bool ipcChannelAvailable;
         private bool ipcChannelAvailableMsgSend;
+
+        public bool IpcChannelAvailable
+        {
+            get
+            {
+                return ipcChannelAvailableMsgSend;
+            }
+        }
 
         /// <summary>
         ///   The watchdog timeout.

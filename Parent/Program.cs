@@ -70,7 +70,7 @@ namespace ParentProcess
                     Console.WriteLine("* IPC Channel Available");
                     var ipcChannel = (IExtendedParentChildIpc) e.ChildProcess.ParentChildIpc;
                     Console.WriteLine("Sending Custom Message at:" + DateTime.Now);
-                    ipcChannel.SendCustomMessageToClient("Hello From Parent Process");
+                    ipcChannel.SendCustomMessageToChild("Hello From Parent");
                     Console.WriteLine("Finish Sending Custom Message at:" + DateTime.Now);
                     break;
             }

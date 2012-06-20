@@ -18,5 +18,7 @@ namespace ChildProcesses
     [ServiceContract(CallbackContract = typeof(IExtendedParentChildIpc))]
     public interface IExtendedChildParentIpc : IChildParentIpc
     {
+        [OperationContract]
+        void SendCustomMessageToParent(string message);
     }
 }

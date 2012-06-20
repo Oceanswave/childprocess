@@ -18,6 +18,20 @@ namespace ChildProcess
             var instance = new CustomizedChildProcessInstance();
             instance.ProcessStateChanged += new ChildProcessInstance.ProcessStateChangedEventHandler(instance_ProcessStateChanged);
             Console.WriteLine("Child begins with ProcessWatchdog Loop");
+            while( ! instance.Shutdown && ! instance.IpcChannelAvailable)
+            {
+                instance.ProcessWatchdog();
+                Thread.Sleep(1000);
+            }
+
+            if (instance.IpcChannelAvailable)
+            {
+                var ipcChannel = (IExtendedChildParentIpc)instance.ChildParentIpc;
+                Console.WriteLine("Sending Custom Message at:" + DateTime.Now);
+                ipcChannel.SendCustomMessageToParent("Hello From Child");
+                Console.WriteLine("Finish Sending Custom Message at:" + DateTime.Now);
+            }
+
             while( ! instance.Shutdown )
             {
                 instance.ProcessWatchdog();
