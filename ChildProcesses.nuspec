@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
-    <version>1.0.2</version>
+    <version>1.0.0.1</version>
     <authors>Thomas Maierhofer</authors>
     <owners />
     <licenseUrl>http://childprocess.codeplex.com/</licenseUrl>
@@ -21,12 +21,13 @@
       Plattform: .NET 4.0 Client Profile
       - Bugfixes
       - Impoved Parent / Clild IPC
-    </releaseNotes>    
+    </releaseNotes>
     <copyright>Maierhofer Software, Germany</copyright>
     <language>en-US</language>
     <tags>process spawn child parent AppDomain</tags>
   </metadata>
   <files>
     <file src="ChildProcesses\bin\Release\ChildProcesses.dll" target="lib\net\ChildProcesses.dll" />
+    <file src="ChildProcesses\bin\Release\ChildProcesses.pdb" target="lib\net\ChildProcesses.pdb" />
   </files>
 </package>

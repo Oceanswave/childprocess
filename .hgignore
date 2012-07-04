@@ -44,6 +44,6 @@ Win32/
 x64/
 ipch/
 [Pp]ackages/*/*
-[Rr]elease*/
-_ReSharper*/
+[Rr]elease*/*
+_ReSharper*/*
 [Hh]elp/*
