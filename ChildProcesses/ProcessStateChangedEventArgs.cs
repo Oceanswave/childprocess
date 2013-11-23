@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ProcessStateChangedEventArgs.cs" company="Maierhofer Software, Germany">
-//   
+//   Copyright 2012 by Maierhofer Software, Germany
 // </copyright>
 // <summary>
 //   TODO: Update summary.
@@ -12,7 +12,7 @@ namespace ChildProcesses
     using System;
 
     /// <summary>
-    /// TODO: Update summary.
+    ///     TODO: Update summary.
     /// </summary>
     public class ProcessStateChangedEventArgs : EventArgs
     {
@@ -22,13 +22,13 @@ namespace ChildProcesses
         /// Initializes a new instance of the <see cref="ProcessStateChangedEventArgs"/> class.
         /// </summary>
         /// <param name="childProcess">
-        /// The child process. 
+        /// The child process.
         /// </param>
         /// <param name="action">
-        /// The action. 
+        /// The action.
         /// </param>
         /// <param name="data">
-        /// The data. 
+        /// The data.
         /// </param>
         public ProcessStateChangedEventArgs(ChildProcess childProcess, ProcessStateChangedAction action, string data)
         {
@@ -42,17 +42,17 @@ namespace ChildProcesses
         #region Public Properties
 
         /// <summary>
-        ///   Gets Action.
+        ///     Gets Action.
         /// </summary>
         public ProcessStateChangedAction Action { get; private set; }
 
         /// <summary>
-        ///   Gets ChildProcess.
+        ///     Gets ChildProcess.
         /// </summary>
         public ChildProcess ChildProcess { get; private set; }
 
         /// <summary>
-        ///   Gets Data.
+        ///     Gets Data.
         /// </summary>
         public string Data { get; private set; }
 

@@ -1,11 +1,13 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="AssemblyInfo.cs" company="">
-//   
+// <copyright file="AssemblyInfo.cs" company="Maierhofer Software, Germany">
+//   Copyright 2012 by Maierhofer Software, Germany
 // </copyright>
 // <summary>
 //   AssemblyInfo.cs
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
+
+
 
 using System.Reflection;
 using System.Runtime.InteropServices;

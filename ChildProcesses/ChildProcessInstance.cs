@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ChildProcessInstance.cs" company="Maierhofer Software, Germany">
-//   
+//   Copyright 2012 by Maierhofer Software, Germany
 // </copyright>
 // <summary>
 //   The child process instance.
@@ -11,71 +11,63 @@ namespace ChildProcesses
 {
     using System;
     using System.Diagnostics;
+    using System.Reflection;
     using System.ServiceModel;
+    using System.Threading;
 
     /// <summary>
-    /// The child process instance.
+    ///     The child process instance.
     /// </summary>
     public class ChildProcessInstance : ProcessInstance
     {
-        public IChildParentIpc ChildParentIpc
-        {
-            get
-            {
-                lock(ipcChannelLock)
-                {
-                    return ipcChannel;
-                }
-            }
-        }
-        #region Constants and Fields
+        #region Static Fields
 
         /// <summary>
-        ///   The child process singlelton.
+        ///     The child process singlelton.
         /// </summary>
         protected static ChildProcessInstance childProcessSinglelton;
 
+        #endregion
+
+        #region Fields
+
         /// <summary>
-        ///   The ipc channel.
+        ///     The ipc channel.
         /// </summary>
         private IChildParentIpc ipcChannel;
 
         /// <summary>
-        ///   The ipc channel factory.
+        /// The ipc channel available.
+        /// </summary>
+        private bool ipcChannelAvailable;
+
+        /// <summary>
+        /// The ipc channel available msg send.
+        /// </summary>
+        private bool ipcChannelAvailableMsgSend;
+
+        /// <summary>
+        ///     The ipc channel factory.
         /// </summary>
         private ChannelFactory ipcChannelFactory;
 
         /// <summary>
-        ///   The ipc channel lock.
+        ///     The ipc channel lock.
         /// </summary>
         private object ipcChannelLock = new object();
 
         /// <summary>
-        ///   The last time alive.
+        ///     The last time alive.
         /// </summary>
         private DateTime lastTimeAlive;
 
-
-
         /// <summary>
-        ///   The parent process exited.
+        ///     The parent process exited.
         /// </summary>
         private bool parentProcessExited;
 
-
-        private bool ipcChannelAvailable;
-        private bool ipcChannelAvailableMsgSend;
-
-        public bool IpcChannelAvailable
-        {
-            get
-            {
-                return ipcChannelAvailableMsgSend;
-            }
-        }
-
         /// <summary>
-        ///   The watchdog timeout.
+        ///     The watchdog timeout.
         /// </summary>
         private bool watchdogTimeout;
 
@@ -84,11 +76,24 @@ namespace ChildProcesses
         #region Constructors and Destructors
 
         /// <summary>
-        ///   Initializes a new instance of the <see cref="ChildProcessInstance" /> class.
+        ///     Initializes a new instance of the <see cref="ChildProcessInstance" /> class.
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
         public ChildProcessInstance()
         {
+            if (bool.Parse(Environment.GetEnvironmentVariable("ChildProcesses.AutoAttachDebugger")))
+            {
+                for (int i = 0; i < 30; ++i)
+                {
+                    // wait 3 seconds to attach the debugger
+                    Thread.Sleep(100);
+                    if (Debugger.IsAttached)
+                    {
+                        break;
+                    }
+                }
+            }
+
             if (childProcessSinglelton != null)
             {
                 throw new InvalidOperationException("ChildProcessInstance Singleton already instantiated");
@@ -101,12 +106,12 @@ namespace ChildProcesses
             try
             {
                 this.ResetIpcChannel();
-                lock( ipcChannelLock )
+                lock (this.ipcChannelLock)
                 {
-                    ipcChannel.ChildIpcInit(CurrentProcess.Id);
+                    this.ipcChannel.ChildIpcInit(this.CurrentProcess.Id);
                 }
             }
-            catch( Exception e)
+            catch (Exception e)
             {
                 // TODO Implement handling
                 throw;
@@ -118,13 +123,13 @@ namespace ChildProcesses
         #region Delegates
 
         /// <summary>
-        /// The process state changed event handler.
+        ///     The process state changed event handler.
         /// </summary>
         /// <param name="sender">
-        /// The sender. 
+        ///     The sender.
         /// </param>
         /// <param name="e">
-        /// The e. 
+        ///     The e.
         /// </param>
         public delegate void ProcessStateChangedEventHandler(object sender, ProcessStateChangedEventArgs e);
 
@@ -133,7 +138,7 @@ namespace ChildProcesses
         #region Public Events
 
         /// <summary>
-        ///   The process state changed.
+        ///     The process state changed.
         /// </summary>
         public event ProcessStateChangedEventHandler ProcessStateChanged;
 
@@ -142,7 +147,7 @@ namespace ChildProcesses
         #region Public Properties
 
         /// <summary>
-        ///   Gets Current.
+        ///     Gets Current.
         /// </summary>
         public static ChildProcessInstance Current
         {
@@ -153,56 +158,69 @@ namespace ChildProcesses
         }
 
         /// <summary>
-        ///   Gets ParentCallbackEndpoint.
+        /// Gets the child parent ipc.
+        /// </summary>
+        public IChildParentIpc ChildParentIpc
+        {
+            get
+            {
+                lock (this.ipcChannelLock)
+                {
+                    return this.ipcChannel;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether ipc channel available.
+        /// </summary>
+        public bool IpcChannelAvailable
+        {
+            get
+            {
+                return this.ipcChannelAvailableMsgSend;
+            }
+        }
+
+        /// <summary>
+        ///     Gets ParentCallbackEndpoint.
         /// </summary>
         public ParentChildIpc ParentCallbackEndpoint { get; private set; }
 
         /// <summary>
-        ///   Gets or sets ParentProcess.
+        ///     Gets or sets ParentProcess.
         /// </summary>
         public Process ParentProcess { get; set; }
 
         /// <summary>
-        ///   Gets a value indicating whether Shutdown.
+        ///     Gets a value indicating whether Shutdown.
         /// </summary>
         public bool Shutdown { get; private set; }
 
         /// <summary>
-        ///   Gets or sets a value indicating whether ShutdownOnParentExit.
+        ///     Gets or sets a value indicating whether ShutdownOnParentExit.
         /// </summary>
         public bool ShutdownOnParentExit { get; set; }
 
         /// <summary>
-        ///   Gets or sets a value indicating whether TriggerShutdown.
+        ///     Gets or sets a value indicating whether TriggerShutdown.
         /// </summary>
         public bool TriggerShutdown { get; set; }
 
         #endregion
 
-        #region Public Methods
+        #region Public Methods and Operators
 
         /// <summary>
-        /// The get i child parent ipc type.
+        /// The on parent ipc init.
         /// </summary>
-        /// <returns>
-        /// </returns>
-        protected virtual Type GetIChildParentIpcType()
+        public void OnParentIpcInit()
         {
-            return typeof(IChildParentIpc);
+            this.OnParentAlive();
         }
 
         /// <summary>
-        /// The get parent child ipc type.
-        /// </summary>
-        /// <returns>
-        /// </returns>
-        protected virtual Type GetParentChildIpcType()
-        {
-            return typeof(ParentChildIpc);
-        }
-
-        /// <summary>
-        /// The process watchdog.
+        ///     The process watchdog.
         /// </summary>
         public void ProcessWatchdog()
         {
@@ -252,9 +270,9 @@ namespace ChildProcesses
                 }
             }
 
-            if( ipcChannelAvailable && ! ipcChannelAvailableMsgSend )
+            if (this.ipcChannelAvailable && ! this.ipcChannelAvailableMsgSend)
             {
-                ipcChannelAvailableMsgSend = true;
+                this.ipcChannelAvailableMsgSend = true;
                 this.RaiseProcessStateChangedEvent(ProcessStateChangedAction.IpcChannelAvail, null);
             }
         }
@@ -264,20 +282,20 @@ namespace ChildProcesses
         #region Methods
 
         /// <summary>
-        /// The on parent alive.
+        ///     The on parent alive.
         /// </summary>
         protected internal virtual void OnParentAlive()
         {
             this.watchdogTimeout = false;
             this.lastTimeAlive = DateTime.Now;
-            if( ! ipcChannelAvailable )
+            if (! this.ipcChannelAvailable)
             {
-                ipcChannelAvailable = true;
+                this.ipcChannelAvailable = true;
             }
         }
 
         /// <summary>
-        /// The on shutdown.
+        ///     The on shutdown.
         /// </summary>
         protected internal virtual void OnShutdown()
         {
@@ -285,13 +303,35 @@ namespace ChildProcesses
         }
 
         /// <summary>
+        /// The get i child parent ipc type.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="Type"/>.
+        /// </returns>
+        protected virtual Type GetIChildParentIpcType()
+        {
+            return typeof(IChildParentIpc);
+        }
+
+        /// <summary>
+        /// The get parent child ipc type.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="Type"/>.
+        /// </returns>
+        protected virtual Type GetParentChildIpcType()
+        {
+            return typeof(ParentChildIpc);
+        }
+
+        /// <summary>
         /// The raise process state changed event.
         /// </summary>
         /// <param name="action">
-        /// The action. 
+        /// The action.
         /// </param>
         /// <param name="data">
-        /// The data. 
+        /// The data.
         /// </param>
         protected virtual void RaiseProcessStateChangedEvent(ProcessStateChangedAction action, string data)
         {
@@ -305,14 +345,15 @@ namespace ChildProcesses
         /// The create channel.
         /// </summary>
         /// <param name="factory">
-        /// The factory. 
+        /// The factory.
         /// </param>
         /// <returns>
+        /// The <see cref="IChildParentIpc"/>.
         /// </returns>
         private IChildParentIpc CreateChannel(ChannelFactory factory)
         {
-            var createchannel = factory.GetType().GetMethod("CreateChannel", new Type[0]);
-            var channel = createchannel.Invoke(factory, null);
+            MethodInfo createchannel = factory.GetType().GetMethod("CreateChannel", new Type[0]);
+            object channel = createchannel.Invoke(factory, null);
             return (IChildParentIpc)channel;
         }
 
@@ -320,20 +361,27 @@ namespace ChildProcesses
         /// The create channel factory.
         /// </summary>
         /// <returns>
+        /// The <see cref="ChannelFactory"/>.
         /// </returns>
         private ChannelFactory CreateChannelFactory()
         {
-            var channelFactoryType = typeof(DuplexChannelFactory<>);
+            Type channelFactoryType = typeof(DuplexChannelFactory<>);
             channelFactoryType = channelFactoryType.MakeGenericType(this.GetIChildParentIpcType());
 
             this.ParentCallbackEndpoint = (ParentChildIpc)Activator.CreateInstance(this.GetParentChildIpcType());
             this.ParentCallbackEndpoint.ChildProcessInstance = this;
 
-            return (ChannelFactory)Activator.CreateInstance(channelFactoryType, this.ParentCallbackEndpoint, new NetNamedPipeBinding(), new EndpointAddress("net.pipe://localhost/" + this.GetIpcUrlPrefix() + "/" + this.ParentProcess.Id + "/ParentChildIpc"));
+            return
+                (ChannelFactory)
+                    Activator.CreateInstance(
+                        channelFactoryType, 
+                        this.ParentCallbackEndpoint, 
+                        new NetNamedPipeBinding(), 
+                        new EndpointAddress("net.pipe://localhost/" + this.GetIpcUrlPrefix() + "/" + this.ParentProcess.Id + "/ParentChildIpc"));
         }
 
         /// <summary>
-        /// The reset ipc channel.
+        ///     The reset ipc channel.
         /// </summary>
         private void ResetIpcChannel()
         {
@@ -348,10 +396,5 @@ namespace ChildProcesses
         }
 
         #endregion
-
-        public void OnParentIpcInit()
-        {
-            this.OnParentAlive();
-        }
     }
 }

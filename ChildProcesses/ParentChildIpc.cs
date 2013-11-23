@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ParentChildIpc.cs" company="Maierhofer Software, Germany">
-//   
+//   Copyright 2012 by Maierhofer Software, Germany
 // </copyright>
 // <summary>
 //   TODO: Update summary.
@@ -10,28 +10,23 @@
 namespace ChildProcesses
 {
     /// <summary>
-    /// TODO: Update summary.
+    ///     TODO: Update summary.
     /// </summary>
     public class ParentChildIpc : IParentChildIpc
     {
         #region Public Properties
 
         /// <summary>
-        ///   Gets or sets ChildProcessInstance.
+        ///     Gets or sets ChildProcessInstance.
         /// </summary>
         public ChildProcessInstance ChildProcessInstance { get; internal set; }
 
         #endregion
 
-        #region Public Methods
-
-        public void ParentIpcInit()
-        {
-            this.ChildProcessInstance.OnParentIpcInit();
-        }
+        #region Public Methods and Operators
 
         /// <summary>
-        /// The parent alive.
+        ///     The parent alive.
         /// </summary>
         public void ParentAlive()
         {
@@ -39,7 +34,15 @@ namespace ChildProcesses
         }
 
         /// <summary>
-        /// The shutdown.
+        /// The parent ipc init.
+        /// </summary>
+        public void ParentIpcInit()
+        {
+            this.ChildProcessInstance.OnParentIpcInit();
+        }
+
+        /// <summary>
+        ///     The shutdown.
         /// </summary>
         public void Shutdown()
         {

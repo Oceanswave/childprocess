@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ChildProcess.cs" company="Maierhofer Software, Germany">
-//   
+//   Copyright 2012 by Maierhofer Software, Germany
 // </copyright>
 // <summary>
 //   TODO: Update summary.
@@ -13,34 +13,34 @@ namespace ChildProcesses
     using System.Diagnostics;
 
     /// <summary>
-    /// TODO: Update summary.
+    ///     TODO: Update summary.
     /// </summary>
     public class ChildProcess
     {
-        #region Constants and Fields
+        #region Fields
 
         /// <summary>
-        ///   The ipc channel avail.
+        ///     The ipc channel avail.
         /// </summary>
         internal bool ipcChannelAvail;
 
         /// <summary>
-        ///   The last time alive.
+        ///     The last time alive.
         /// </summary>
         internal DateTime lastTimeAlive;
 
         /// <summary>
-        ///   The watchdog timeout.
+        ///     The watchdog timeout.
         /// </summary>
         internal bool watchdogTimeout;
 
         /// <summary>
-        ///   The parent child ipc.
+        ///     The parent child ipc.
         /// </summary>
         private IParentChildIpc parentChildIpc;
 
         /// <summary>
-        ///   The parent child ipc lock.
+        ///     The parent child ipc lock.
         /// </summary>
         private object parentChildIpcLock = new object();
 
@@ -49,11 +49,11 @@ namespace ChildProcesses
         #region Constructors and Destructors
 
         /// <summary>
-        ///   Initializes a new instance of the <see cref="ChildProcess" /> class.
+        ///     Initializes a new instance of the <see cref="ChildProcess" /> class.
         /// </summary>
         public ChildProcess()
         {
-            lastTimeAlive = DateTime.Now;
+            this.lastTimeAlive = DateTime.Now;
         }
 
         #endregion
@@ -61,22 +61,22 @@ namespace ChildProcesses
         #region Public Properties
 
         /// <summary>
-        ///   Gets or sets AdditionalData.
+        ///     Gets or sets AdditionalData.
         /// </summary>
         public object AdditionalData { get; set; }
 
         /// <summary>
-        ///   Gets or sets Manager.
+        ///     Gets or sets Manager.
         /// </summary>
         public ChildProcessManager Manager { get; internal set; }
 
         /// <summary>
-        ///   Gets or sets Name.
+        ///     Gets or sets Name.
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        ///   Gets or sets ParentChildIpc.
+        ///     Gets or sets ParentChildIpc.
         /// </summary>
         public IParentChildIpc ParentChildIpc
         {
@@ -98,7 +98,7 @@ namespace ChildProcesses
         }
 
         /// <summary>
-        ///   Gets Process.
+        ///     Gets Process.
         /// </summary>
         public Process Process { get; private set; }
 
@@ -107,7 +107,7 @@ namespace ChildProcesses
         #region Methods
 
         /// <summary>
-        /// The post start init.
+        ///     The post start init.
         /// </summary>
         protected internal virtual void PostStartInit()
         {
@@ -119,10 +119,10 @@ namespace ChildProcesses
         /// The pre start init.
         /// </summary>
         /// <param name="manager">
-        /// The manager. 
+        /// The manager.
         /// </param>
         /// <param name="process">
-        /// The process. 
+        /// The process.
         /// </param>
         protected internal virtual void PreStartInit(ChildProcessManager manager, Process process)
         {
@@ -136,10 +136,10 @@ namespace ChildProcesses
         /// The process_ error data received.
         /// </summary>
         /// <param name="sender">
-        /// The sender. 
+        /// The sender.
         /// </param>
         /// <param name="e">
-        /// The e. 
+        /// The e.
         /// </param>
         private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
@@ -150,10 +150,10 @@ namespace ChildProcesses
         /// The process_ output data received.
         /// </summary>
         /// <param name="sender">
-        /// The sender. 
+        /// The sender.
         /// </param>
         /// <param name="e">
-        /// The e. 
+        /// The e.
         /// </param>
         private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {

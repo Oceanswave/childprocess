@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ChildProcessManager.cs" company="Maierhofer Software, Germany">
-//   
+//   Copyright 2012 by Maierhofer Software, Germany
 // </copyright>
 // <summary>
 //   The child process manager.
@@ -14,37 +14,42 @@ namespace ChildProcesses
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Reflection;
     using System.ServiceModel;
 
     /// <summary>
-    /// The child process manager.
+    ///     The child process manager.
     /// </summary>
-    public class ChildProcessManager : ProcessInstance, IEnumerable
+    public class ChildProcessManager : ProcessInstance, IEnumerable, IDisposable
     {
-        #region Constants and Fields
+        #region Static Fields
 
         /// <summary>
-        ///   The parent process singlelton.
+        ///     The parent process singleton.
         /// </summary>
-        protected static ChildProcessManager parentProcessSinglelton;
+        private static ChildProcessManager parentProcessSinglelton;
+
+        #endregion
+
+        #region Fields
 
         /// <summary>
-        ///   The child processes.
+        ///     The child processes.
         /// </summary>
         private Dictionary<int, ChildProcess> childProcesses;
 
         /// <summary>
-        ///   The child processes lock.
+        ///     The child processes lock.
         /// </summary>
         private object childProcessesLock;
 
         /// <summary>
-        ///   The ipc host.
+        ///     The IPC host.
         /// </summary>
         private ServiceHost ipcHost;
 
         /// <summary>
-        ///   The ipc host lock.
+        ///     The IPC host lock.
         /// </summary>
         private object ipcHostLock = new object();
 
@@ -53,7 +58,7 @@ namespace ChildProcesses
         #region Constructors and Destructors
 
         /// <summary>
-        ///   Initializes a new instance of the <see cref="ChildProcessManager" /> class.
+        ///     Initializes a new instance of the <see cref="ChildProcessManager" /> class.
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
         public ChildProcessManager()
@@ -69,18 +74,26 @@ namespace ChildProcesses
             this.ResetClientIpcHost();
         }
 
+        /// <summary>
+        /// Finalizes an instance of the <see cref="ChildProcessManager"/> class. 
+        /// </summary>
+        ~ChildProcessManager()
+        {
+            this.Dispose(false);
+        }
+
         #endregion
 
         #region Delegates
 
         /// <summary>
-        /// The process state changed event handler.
+        ///     The process state changed event handler.
         /// </summary>
         /// <param name="sender">
-        /// The sender. 
+        ///     The sender.
         /// </param>
         /// <param name="e">
-        /// The e. 
+        ///     The e.
         /// </param>
         public delegate void ProcessStateChangedEventHandler(object sender, ProcessStateChangedEventArgs e);
 
@@ -89,7 +102,12 @@ namespace ChildProcesses
         #region Public Events
 
         /// <summary>
-        ///   The process state changed.
+        /// The child process started.
+        /// </summary>
+        public static event EventHandler<ProcessStartEventArgs> ChildProcessStarted;
+
+        /// <summary>
+        ///     The process state changed.
         /// </summary>
         public event ProcessStateChangedEventHandler ProcessStateChanged;
 
@@ -98,7 +116,12 @@ namespace ChildProcesses
         #region Public Properties
 
         /// <summary>
-        ///   Gets Current.
+        /// Gets or sets a value indicating whether child debugger auto attach.
+        /// </summary>
+        public static bool ChildDebuggerAutoAttach { get; set; }
+
+        /// <summary>
+        ///     Gets Current.
         /// </summary>
         public static ChildProcessManager Current
         {
@@ -108,42 +131,44 @@ namespace ChildProcesses
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether is disposed.
+        /// </summary>
+        public bool IsDisposed { get; private set; }
+
         #endregion
 
-        #region Public Methods
+        #region Public Methods and Operators
 
         /// <summary>
-        /// The get child parent ipc type.
+        /// The dispose.
+        /// </summary>
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// The get enumerator.
         /// </summary>
         /// <returns>
+        /// The <see cref="IEnumerator"/>.
         /// </returns>
-        protected virtual Type GetChildParentIpcType()
+        public IEnumerator GetEnumerator()
         {
-            return typeof(ChildParentIpc);
+            lock (this.childProcessesLock)
+            {
+                return this.childProcesses.Values.ToArray().GetEnumerator();
+            }
         }
 
         /// <summary>
-        /// The get i child parent ipc type.
-        /// </summary>
-        /// <returns>
-        /// </returns>
-        protected virtual Type GetIChildParentIpcType()
-        {
-            return typeof(IChildParentIpc);
-        }
-
-        protected virtual Type GetIParentChildIpcType()
-        {
-            return typeof(IParentChildIpc);
-        }
-
-
-        /// <summary>
-        /// The process watchdog.
+        ///     Watchdog Processing must periodically called to actualize state.
         /// </summary>
         public void ProcessWatchdog()
         {
-            List<ChildProcess> exitedProcesses = new List<ChildProcess>();
+            var exitedProcesses = new List<ChildProcess>();
             ChildProcess[] currentChildProcesses;
             lock (this.childProcessesLock)
             {
@@ -189,7 +214,7 @@ namespace ChildProcesses
                         }
                         catch (Exception)
                         {
-                            childProcess.ParentChildIpc = null;  
+                            childProcess.ParentChildIpc = null;
                         }
                     }
 
@@ -225,9 +250,10 @@ namespace ChildProcesses
         /// The start child process.
         /// </summary>
         /// <param name="processInfo">
-        /// The process info. 
+        /// The process info.
         /// </param>
         /// <returns>
+        /// The <see cref="ChildProcess"/>.
         /// </returns>
         public ChildProcess StartChildProcess(ProcessStartInfo processInfo)
         {
@@ -240,18 +266,28 @@ namespace ChildProcesses
         /// The start child process.
         /// </summary>
         /// <param name="processInfo">
-        /// The process info. 
+        /// The process info.
         /// </param>
         /// <param name="childProcess">
-        /// The child process. 
+        /// The child process.
         /// </param>
         public void StartChildProcess(ProcessStartInfo processInfo, ChildProcess childProcess)
         {
-            processInfo.CreateNoWindow = true;
+            processInfo.CreateNoWindow = false;
             processInfo.RedirectStandardOutput = true;
             processInfo.RedirectStandardInput = true;
             processInfo.RedirectStandardError = true;
             processInfo.UseShellExecute = false;
+            processInfo.EnvironmentVariables.Add("ChildProcesses.IpcChannelPrefix", "lkasdjf -asd");
+            if (ChildDebuggerAutoAttach && Debugger.IsAttached)
+            {
+                processInfo.EnvironmentVariables.Add("ChildProcesses.AutoAttachDebugger", "True");
+            }
+            else
+            {
+                processInfo.EnvironmentVariables.Add("ChildProcesses.AutoAttachDebugger", "False");
+            }
+
             var process = new Process();
             process.StartInfo = processInfo;
             childProcess.PreStartInit(this, process);
@@ -263,6 +299,8 @@ namespace ChildProcesses
                 {
                     this.childProcesses.Add(process.Id, childProcess);
                 }
+
+                OnChildProcessStarted(new ProcessStartEventArgs() { Manager = this, ProcessStartInfo = processInfo, StartedProcess = childProcess });
             }
             catch (Exception)
             {
@@ -275,9 +313,10 @@ namespace ChildProcesses
         /// The try get child process.
         /// </summary>
         /// <param name="id">
-        /// The id. 
+        /// The id.
         /// </param>
         /// <returns>
+        /// The <see cref="ChildProcess"/>.
         /// </returns>
         public ChildProcess TryGetChildProcess(int id)
         {
@@ -294,50 +333,21 @@ namespace ChildProcesses
         #region Methods
 
         /// <summary>
-        /// The raise process state changed event.
-        /// </summary>
-        /// <param name="childProcess">
-        /// The child process. 
-        /// </param>
-        /// <param name="action">
-        /// The action. 
-        /// </param>
-        /// <param name="data">
-        /// The data. 
-        /// </param>
-        protected internal virtual void RaiseProcessStateChangedEvent(ChildProcess childProcess, ProcessStateChangedAction action, string data)
-        {
-            // Raise the event by using the () operator.
-            if (this.ProcessStateChanged != null)
-            {
-                this.ProcessStateChanged(this, new ProcessStateChangedEventArgs(childProcess, action, data));
-            }
-        }
-
-        protected internal virtual void OnChildIpcInit(int childProcessId)
-        {
-            this.OnChildAlive(childProcessId);
-        }
-
-
-        /// <summary>
         /// The on child alive.
         /// </summary>
         /// <param name="childProcessId">
-        /// The child process id. 
+        /// The child process id.
         /// </param>
         protected internal virtual void OnChildAlive(int childProcessId)
         {
-
-
             ChildProcess child = this.TryGetChildProcess(childProcessId);
             if (child != null)
             {
                 if (child.ParentChildIpc == null)
                 {
-                    var operationContext = OperationContext.Current;
-                    var operationContextType = operationContext.GetType();
-                    var getCallbackChannelMethod = operationContextType.GetMethod("GetCallbackChannel");
+                    OperationContext operationContext = OperationContext.Current;
+                    Type operationContextType = operationContext.GetType();
+                    MethodInfo getCallbackChannelMethod = operationContextType.GetMethod("GetCallbackChannel");
 
                     getCallbackChannelMethod = getCallbackChannelMethod.MakeGenericMethod(this.GetIParentChildIpcType());
                     var callback = (IParentChildIpc)getCallbackChannelMethod.Invoke(operationContext, null);
@@ -350,13 +360,114 @@ namespace ChildProcesses
         }
 
         /// <summary>
+        /// The on child ipc init.
+        /// </summary>
+        /// <param name="childProcessId">
+        /// The child process id.
+        /// </param>
+        protected internal virtual void OnChildIpcInit(int childProcessId)
+        {
+            this.OnChildAlive(childProcessId);
+        }
+
+        /// <summary>
+        /// The raise process state changed event.
+        /// </summary>
+        /// <param name="childProcess">
+        /// The child process.
+        /// </param>
+        /// <param name="action">
+        /// The action.
+        /// </param>
+        /// <param name="data">
+        /// The data.
+        /// </param>
+        protected internal virtual void RaiseProcessStateChangedEvent(ChildProcess childProcess, ProcessStateChangedAction action, string data)
+        {
+            // Raise the event by using the () operator.
+            if (this.ProcessStateChanged != null)
+            {
+                this.ProcessStateChanged(this, new ProcessStateChangedEventArgs(childProcess, action, data));
+            }
+        }
+
+        /// <summary>
+        /// The dispose.
+        /// </summary>
+        /// <param name="disposing">
+        /// The disposing.
+        /// </param>
+        protected virtual void Dispose(bool disposing)
+        {
+            this.IsDisposed = true;
+            lock (this.childProcessesLock)
+            {
+                foreach (var childProcess in this.childProcesses)
+                {
+                    if (! childProcess.Value.Process.HasExited)
+                    {
+                        childProcess.Value.Process.Kill();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the type of the child parent IPC channel.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="Type"/>.
+        /// </returns>
+        protected virtual Type GetChildParentIpcType()
+        {
+            return typeof(ChildParentIpc);
+        }
+
+        /// <summary>
+        /// Gets the interface type of the child to parent IPC channel.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="Type"/>.
+        /// </returns>
+        protected virtual Type GetIChildParentIpcType()
+        {
+            return typeof(IChildParentIpc);
+        }
+
+        /// <summary>
+        /// Gets the interface type of the parent to child IPC channel
+        /// </summary>
+        /// <returns>
+        /// The <see cref="Type"/>.
+        /// </returns>
+        protected virtual Type GetIParentChildIpcType()
+        {
+            return typeof(IParentChildIpc);
+        }
+
+        /// <summary>
+        /// The on child process started.
+        /// </summary>
+        /// <param name="e">
+        /// The e.
+        /// </param>
+        private static void OnChildProcessStarted(ProcessStartEventArgs e)
+        {
+            EventHandler<ProcessStartEventArgs> handler = ChildProcessStarted;
+            if (handler != null)
+            {
+                handler(null, e);
+            }
+        }
+
+        /// <summary>
         /// The ipc host_ faulted.
         /// </summary>
         /// <param name="sender">
-        /// The sender. 
+        /// The sender.
         /// </param>
         /// <param name="e">
-        /// The e. 
+        /// The e.
         /// </param>
         private void IpcHost_Faulted(object sender, EventArgs e)
         {
@@ -370,7 +481,7 @@ namespace ChildProcesses
         }
 
         /// <summary>
-        /// The reset client ipc host.
+        ///     The reset client ipc host.
         /// </summary>
         private void ResetClientIpcHost()
         {
@@ -381,7 +492,8 @@ namespace ChildProcesses
                     this.ipcHost.Close();
                     this.ipcHost = null;
                 }
-                var ipcEndpint = (ChildParentIpc) Activator.CreateInstance(this.GetChildParentIpcType());
+
+                var ipcEndpint = (ChildParentIpc)Activator.CreateInstance(this.GetChildParentIpcType());
                 ipcEndpint.Manager = this;
                 var newHost = new ServiceHost(ipcEndpint, new[] { new Uri("net.pipe://localhost/" + this.GetIpcUrlPrefix() + "/" + this.CurrentProcess.Id) });
                 newHost.AddServiceEndpoint(this.GetIChildParentIpcType(), new NetNamedPipeBinding(), "ParentChildIpc");
@@ -393,15 +505,29 @@ namespace ChildProcesses
 
         #endregion
 
-        public IEnumerator GetEnumerator()
+        /// <summary>
+        /// The process start event args.
+        /// </summary>
+        public class ProcessStartEventArgs : EventArgs
         {
-            List<ChildProcess> currentChildProcesses;
-            lock (this.childProcessesLock)
-            {
-                currentChildProcesses = this.childProcesses.Values.ToList();
-            }
+            #region Public Properties
 
-            return currentChildProcesses.GetEnumerator();
+            /// <summary>
+            /// Gets or sets the manager.
+            /// </summary>
+            public ChildProcessManager Manager { get; set; }
+
+            /// <summary>
+            /// Gets the process start info.
+            /// </summary>
+            public ProcessStartInfo ProcessStartInfo { get; internal set; }
+
+            /// <summary>
+            /// Gets the started process.
+            /// </summary>
+            public ChildProcess StartedProcess { get; internal set; }
+
+            #endregion
         }
     }
 }

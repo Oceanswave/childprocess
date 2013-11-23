@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ProcessInstance.cs" company="Maierhofer Software, Germany">
-//   
+//   Copyright 2012 by Maierhofer Software, Germany
 // </copyright>
 // <summary>
 //   The process instance.
@@ -13,14 +13,14 @@ namespace ChildProcesses
     using System.Diagnostics;
 
     /// <summary>
-    /// The process instance.
+    ///     The process instance.
     /// </summary>
     public class ProcessInstance
     {
         #region Constructors and Destructors
 
         /// <summary>
-        ///   Initializes a new instance of the <see cref="ProcessInstance" /> class.
+        ///     Initializes a new instance of the <see cref="ProcessInstance" /> class.
         /// </summary>
         protected ProcessInstance()
         {
@@ -35,17 +35,17 @@ namespace ChildProcesses
         #region Public Properties
 
         /// <summary>
-        ///   Gets or sets AliveMessageFrquency.
+        ///     Gets or sets AliveMessageFrquency.
         /// </summary>
         public TimeSpan AliveMessageFrquency { get; set; }
 
         /// <summary>
-        ///   Gets CurrentProcess.
+        ///     Gets CurrentProcess.
         /// </summary>
         public Process CurrentProcess { get; private set; }
 
         /// <summary>
-        ///   Gets or sets WatchdogTimeout.
+        ///     Gets or sets WatchdogTimeout.
         /// </summary>
         public TimeSpan WatchdogTimeout { get; set; }
 
@@ -54,7 +54,7 @@ namespace ChildProcesses
         #region Properties
 
         /// <summary>
-        ///   Gets or sets LastAliveMessage.
+        ///     Gets or sets LastAliveMessage.
         /// </summary>
         protected DateTime LastAliveMessage { get; set; }
 
@@ -66,7 +66,7 @@ namespace ChildProcesses
         /// The get ipc url prefix.
         /// </summary>
         /// <returns>
-        /// The get ipc url prefix. 
+        /// The <see cref="string"/>.
         /// </returns>
         protected virtual string GetIpcUrlPrefix()
         {

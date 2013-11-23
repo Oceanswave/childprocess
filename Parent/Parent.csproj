@@ -48,6 +48,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ChildProcesses.VisualStudioDebug\ChildProcesses.VisualStudioDebug.csproj">
+      <Project>{55bbbb6d-fe95-448c-a3c3-2316ac922a55}</Project>
+      <Name>ChildProcesses.VisualStudioDebug</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ChildProcesses\ChildProcesses.csproj">
       <Project>{68769A09-AFF8-41D4-8D95-2A21540D4BB8}</Project>
       <Name>ChildProcesses</Name>

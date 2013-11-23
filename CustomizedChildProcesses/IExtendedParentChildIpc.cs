@@ -1,24 +1,33 @@
-﻿// -----------------------------------------------------------------------
+﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="IExtendedParentChildIpc.cs" company="">
-// TODO: Update copyright text.
+//   
 // </copyright>
-// -----------------------------------------------------------------------
+// <summary>
+//   TODO: Update summary.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace ChildProcesses
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.ServiceModel;
-    using System.Text;
 
     /// <summary>
-    /// TODO: Update summary.
+    ///     TODO: Update summary.
     /// </summary>
     [ServiceContract]
     public interface IExtendedParentChildIpc : IParentChildIpc
     {
+        #region Public Methods and Operators
+
+        /// <summary>
+        /// The send custom message to child.
+        /// </summary>
+        /// <param name="message">
+        /// The message.
+        /// </param>
         [OperationContract]
         void SendCustomMessageToChild(string message);
+
+        #endregion
     }
 }

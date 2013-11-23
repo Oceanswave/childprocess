@@ -1,20 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="Program.cs" company="">
+//   
+// </copyright>
+// <summary>
+//   The program.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace ParentProcess
 {
+    using System;
     using System.Diagnostics;
     using System.IO;
     using System.Threading;
 
     using ChildProcesses;
+    using ChildProcesses.VisualStudioDebug;
 
-    class Program
+    /// <summary>
+    /// The program.
+    /// </summary>
+    internal class Program
     {
-        static void Main(string[] args)
+        #region Methods
+
+        /// <summary>
+        /// The main.
+        /// </summary>
+        /// <param name="args">
+        /// The args.
+        /// </param>
+        private static void Main(string[] args)
         {
+            VisualStudioDebugHelper.Register();
+
             var manager = new CustomizedChildProcessManager();
 
             manager.ProcessStateChanged += new ChildProcessManager.ProcessStateChangedEventHandler(manager_ProcessStateChanged);
@@ -27,53 +46,66 @@ namespace ParentProcess
             childProcessExePath += @"\Release\Child.exe";
 #endif
 
-            var currentDir = Directory.GetCurrentDirectory();
+            string currentDir = Directory.GetCurrentDirectory();
             childProcessExePath = Path.Combine(currentDir, childProcessExePath);
             childProcessExePath = Path.GetFullPath(childProcessExePath);
 
-            ProcessStartInfo processInfo = new ProcessStartInfo(childProcessExePath);
+            var processInfo = new ProcessStartInfo(childProcessExePath);
             var childProcess = new CustomizedChildProcess();
             manager.StartChildProcess(processInfo, childProcess);
 
             Console.WriteLine("Parent begins with ProcessWatchdog Loop");
-            for(int i = 0; i < 20; ++ i)
+            for (int i = 0; i < 20; ++ i)
             {
                 Thread.Sleep(1000);
                 manager.ProcessWatchdog();
             }
 
             Console.WriteLine("Parent signals Child to Shutdown");
-            childProcess.ParentChildIpc.Shutdown();
 
+            // childProcess.ParentChildIpc.Shutdown();
             Console.WriteLine("Parent begins with ProcessWatchdog Loop");
             for (int i = 0; i < 20; ++i)
             {
                 Thread.Sleep(1000);
                 manager.ProcessWatchdog();
             }
+
+            manager.Dispose();
         }
 
-        static void manager_ProcessStateChanged(object sender, ProcessStateChangedEventArgs e)
+        /// <summary>
+        /// The manager_ process state changed.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The e.
+        /// </param>
+        private static void manager_ProcessStateChanged(object sender, ProcessStateChangedEventArgs e)
         {
-            var manager = (CustomizedChildProcessManager) sender;
+            var manager = (CustomizedChildProcessManager)sender;
             Console.WriteLine("Parent Process State Changed: " + e.Action);
-            switch(e.Action)
+            switch (e.Action)
             {
                 case ProcessStateChangedAction.StandardOutputMessage:
                     Console.WriteLine("* Msg: " + e.Data);
                     break;
 
-                    case ProcessStateChangedAction.StandardErrorMessage:
+                case ProcessStateChangedAction.StandardErrorMessage:
                     Console.WriteLine("* Err: " + e.Data);
                     break;
-                    case ProcessStateChangedAction.IpcChannelAvail:
+                case ProcessStateChangedAction.IpcChannelAvail:
                     Console.WriteLine("* IPC Channel Available");
-                    var ipcChannel = (IExtendedParentChildIpc) e.ChildProcess.ParentChildIpc;
+                    var ipcChannel = (IExtendedParentChildIpc)e.ChildProcess.ParentChildIpc;
                     Console.WriteLine("Sending Custom Message at:" + DateTime.Now);
                     ipcChannel.SendCustomMessageToChild("Hello From Parent");
                     Console.WriteLine("Finish Sending Custom Message at:" + DateTime.Now);
                     break;
             }
         }
+
+        #endregion
     }
 }

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ChildParentIpc.cs" company="Maierhofer Software, Germany">
-//   
+//   Copyright 2012 by Maierhofer Software, Germany
 // </copyright>
 // <summary>
 //   TODO: Update summary.
@@ -12,28 +12,41 @@ namespace ChildProcesses
     using System.ServiceModel;
 
     /// <summary>
-    /// TODO: Update summary.
+    ///     TODO: Update summary.
     /// </summary>
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     public class ChildParentIpc : IChildParentIpc
     {
-        public ChildProcessManager Manager { get; internal set; }
-        #region Public Methods
+        #region Public Properties
 
-        public void ChildIpcInit(int processId)
-        {
-            
-        }
+        /// <summary>
+        /// Gets the manager.
+        /// </summary>
+        public ChildProcessManager Manager { get; internal set; }
+
+        #endregion
+
+        #region Public Methods and Operators
 
         /// <summary>
         /// The child alive.
         /// </summary>
         /// <param name="processId">
-        /// The process id. 
+        /// The process id.
         /// </param>
         public void ChildAlive(int processId)
         {
-            Manager.OnChildAlive(processId);
+            this.Manager.OnChildAlive(processId);
+        }
+
+        /// <summary>
+        /// The child ipc init.
+        /// </summary>
+        /// <param name="processId">
+        /// The process id.
+        /// </param>
+        public void ChildIpcInit(int processId)
+        {
         }
 
         #endregion

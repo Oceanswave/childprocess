@@ -1,24 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="Program.cs" company="">
+//   
+// </copyright>
+// <summary>
+//   The program.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace ChildProcess
 {
-    using System.Diagnostics;
-    using System.ServiceModel;
+    using System;
     using System.Threading;
 
     using ChildProcesses;
 
-    class Program
+    /// <summary>
+    /// The program.
+    /// </summary>
+    internal class Program
     {
-        static void Main(string[] args)
+        #region Methods
+
+        /// <summary>
+        /// The main.
+        /// </summary>
+        /// <param name="args">
+        /// The args.
+        /// </param>
+        private static void Main(string[] args)
         {
             var instance = new CustomizedChildProcessInstance();
             instance.ProcessStateChanged += new ChildProcessInstance.ProcessStateChangedEventHandler(instance_ProcessStateChanged);
             Console.WriteLine("Child begins with ProcessWatchdog Loop");
-            while( ! instance.Shutdown && ! instance.IpcChannelAvailable)
+            Console.WriteLine("IPC Channel Bla: " + Environment.GetEnvironmentVariable("ChildProcessesIpcChannelPrefix"));
+            while (! instance.Shutdown && ! instance.IpcChannelAvailable)
             {
                 instance.ProcessWatchdog();
                 Thread.Sleep(1000);
@@ -32,19 +47,28 @@ namespace ChildProcess
                 Console.WriteLine("Finish Sending Custom Message at:" + DateTime.Now);
             }
 
-            while( ! instance.Shutdown )
+            while (! instance.Shutdown)
             {
                 instance.ProcessWatchdog();
                 Thread.Sleep(1000);
             }
-
         }
 
-        static void instance_ProcessStateChanged(object sender, ProcessStateChangedEventArgs e)
+        /// <summary>
+        /// The instance_ process state changed.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The e.
+        /// </param>
+        private static void instance_ProcessStateChanged(object sender, ProcessStateChangedEventArgs e)
         {
-            var instance = (CustomizedChildProcessInstance) sender;
-            Console.WriteLine("Child Process State Changed: " + e.Action );
+            var instance = (CustomizedChildProcessInstance)sender;
+            Console.WriteLine("Child Process State Changed: " + e.Action);
         }
 
+        #endregion
     }
 }
