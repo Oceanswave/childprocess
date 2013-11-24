@@ -3,9 +3,8 @@
   <metadata>
     <id>ChildProcesses</id>
     <title>ChildProcesses - Child Process Management for .NET</title>
-    <version>1.0.4.0</version>
+    <version>1.0.4.1</version>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-
     <description>
       ChildProcesses is a child process management library for the .NET Framework.
       It allows to create child processes, and provides bidirectional extendable interprocess communication based on WCF and NamedPipes out of the box.
@@ -13,9 +12,7 @@
       Child processes are an alternative to AppDomains when parent must continue if the child crashes.
       It is also possible to mix 32Bit and 64 Bit processes.
     </description>
-    
     <summary>ChildProcesses is a child process management library for the .NET framework.</summary>
-
     <releaseNotes>
       Release 1.0.4 breaking changes:
 
@@ -25,14 +22,10 @@
       - ProcessStateChangedAction is renamed in ProcessStateChangedEnum
       
     </releaseNotes>
-    
     <copyright>Copyright by Thomas Maierhofer</copyright>
     <authors>Thomas Maierhofer</authors>
     <owners>Thomas Maierhofer</owners>
-    
     <tags>childprocess process spawn child parent AppDomain kill</tags>
-    
-    
   </metadata>
   <files>
     <file src="bin\Release\ChildProcesses.dll" target="lib\net\ChildProcesses.dll" />
