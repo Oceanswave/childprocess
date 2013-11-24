@@ -1,2 +1,3 @@
 NuspecFile, 				Public
-"ChildProcesses.nuspec",	true
+"ChildProcesses\ChildProcesses.nuspec",	false
+"ChildProcesses.VisualStudioDebug\ChildProcesses.VisualStudioDebug.nuspec",	false

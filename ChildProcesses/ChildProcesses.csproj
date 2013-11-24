@@ -46,7 +46,7 @@
     <Compile Include="ChildProcessInstance.cs" />
     <Compile Include="ParentChildIpc.cs" />
     <Compile Include="IParentChildIpc.cs" />
-    <Compile Include="ProcessStateChangedAction.cs" />
+    <Compile Include="ProcessStateChangedEnum.cs" />
     <Compile Include="IChildParentIpc.cs" />
     <Compile Include="ChildParentIpc.cs" />
     <Compile Include="ProcessExtension.cs" />
@@ -54,6 +54,9 @@
     <Compile Include="ChildProcessManager.cs" />
     <Compile Include="ProcessStateChangedEventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ChildProcesses.nuspec" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

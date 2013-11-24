@@ -12,7 +12,7 @@ namespace ChildProcesses
     /// <summary>
     ///     TODO: Update summary.
     /// </summary>
-    public enum ProcessStateChangedAction
+    public enum ProcessStateChangedEnum
     {
         /// <summary>
         ///     The Child IPC Callback Channel is available
@@ -20,12 +20,12 @@ namespace ChildProcesses
         IpcChannelAvail, 
 
         /// <summary>
-        ///     Text is recceived from Child Process Standard Output
+        ///     Text is received from Child Process Standard Output
         /// </summary>
         StandardOutputMessage, 
 
         /// <summary>
-        ///     Text is recceived from Child Process Standard Error
+        ///     Text is received from Child Process Standard Error
         /// </summary>
         StandardErrorMessage, 
 

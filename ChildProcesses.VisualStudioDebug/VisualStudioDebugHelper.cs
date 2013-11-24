@@ -78,6 +78,11 @@ namespace ChildProcesses.VisualStudioDebug
             }
             catch (COMException e)
             {
+                if (e.ErrorCode == RPC_E_SERVERCALL_RETRYLATER)
+                {
+                    return;
+                }
+
                 throw;
             }
         }

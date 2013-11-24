@@ -30,7 +30,7 @@ namespace ChildProcesses
         /// <param name="data">
         /// The data.
         /// </param>
-        public ProcessStateChangedEventArgs(ChildProcess childProcess, ProcessStateChangedAction action, string data)
+        public ProcessStateChangedEventArgs(ChildProcess childProcess, ProcessStateChangedEnum action, string data)
         {
             this.ChildProcess = childProcess;
             this.Action = action;
@@ -44,7 +44,7 @@ namespace ChildProcesses
         /// <summary>
         ///     Gets Action.
         /// </summary>
-        public ProcessStateChangedAction Action { get; private set; }
+        public ProcessStateChangedEnum Action { get; private set; }
 
         /// <summary>
         ///     Gets ChildProcess.

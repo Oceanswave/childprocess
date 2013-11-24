@@ -12,17 +12,13 @@ namespace ChildProcesses
     using System;
     using System.Diagnostics;
 
+
     /// <summary>
-    ///     TODO: Update summary.
+    /// The Child Process represents the child process on the parent. It is manages by a <see cref="ChildProcessManager"/>
     /// </summary>
     public class ChildProcess
     {
         #region Fields
-
-        /// <summary>
-        ///     The ipc channel avail.
-        /// </summary>
-        internal bool ipcChannelAvail;
 
         /// <summary>
         ///     The last time alive.
@@ -34,15 +30,22 @@ namespace ChildProcesses
         /// </summary>
         internal bool watchdogTimeout;
 
+
         /// <summary>
-        ///     The parent child ipc.
+        ///     The ipc channel avail.
         /// </summary>
-        private IParentChildIpc parentChildIpc;
+        internal bool parentChildIpcChannelAvail;
 
         /// <summary>
         ///     The parent child ipc lock.
         /// </summary>
         private object parentChildIpcLock = new object();
+
+        /// <summary>
+        ///     The parent child ipc.
+        /// </summary>
+        private IParentChildIpc parentChildIpc;
+
 
         #endregion
 
@@ -143,7 +146,7 @@ namespace ChildProcesses
         /// </param>
         private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
-            this.Manager.RaiseProcessStateChangedEvent(this, ProcessStateChangedAction.StandardErrorMessage, e.Data);
+            this.Manager.RaiseProcessStateChangedEvent(this, ProcessStateChangedEnum.StandardErrorMessage, e.Data);
         }
 
         /// <summary>
@@ -157,7 +160,7 @@ namespace ChildProcesses
         /// </param>
         private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
-            this.Manager.RaiseProcessStateChangedEvent(this, ProcessStateChangedAction.StandardOutputMessage, e.Data);
+            this.Manager.RaiseProcessStateChangedEvent(this, ProcessStateChangedEnum.StandardOutputMessage, e.Data);
         }
 
         #endregion

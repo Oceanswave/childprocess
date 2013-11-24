@@ -11,12 +11,15 @@ namespace ChildProcesses
 {
     using System;
     using System.Diagnostics;
+    using System.Net.Security;
     using System.Reflection;
     using System.ServiceModel;
+    using System.ServiceModel.Channels;
     using System.Threading;
 
+
     /// <summary>
-    ///     The child process instance.
+    /// The Child Process Instance represents the child process itself. It is instantiated on the child.
     /// </summary>
     public class ChildProcessInstance : ProcessInstance
     {
@@ -81,7 +84,7 @@ namespace ChildProcesses
         /// <exception cref="InvalidOperationException"></exception>
         public ChildProcessInstance()
         {
-            if (bool.Parse(Environment.GetEnvironmentVariable("ChildProcesses.AutoAttachDebugger")))
+            if (bool.Parse(Environment.GetEnvironmentVariable("ChildProcesses.AutoAttachDebugger") ?? "False"))
             {
                 for (int i = 0; i < 30; ++i)
                 {
@@ -116,6 +119,8 @@ namespace ChildProcesses
                 // TODO Implement handling
                 throw;
             }
+
+            this.StartWatchdog();
         }
 
         #endregion
@@ -219,15 +224,13 @@ namespace ChildProcesses
             this.OnParentAlive();
         }
 
-        /// <summary>
-        ///     The process watchdog.
-        /// </summary>
-        public void ProcessWatchdog()
+        protected override void OnWatchdog()
         {
-            if (! this.parentProcessExited && this.ParentProcess.HasExited)
+            
+            if (this.ParentProcess.HasExited && ! this.parentProcessExited)
             {
                 this.parentProcessExited = true;
-                this.RaiseProcessStateChangedEvent(ProcessStateChangedAction.ParentExited, null);
+                this.RaiseProcessStateChangedEvent(ProcessStateChangedEnum.ParentExited, null);
                 if (this.ShutdownOnParentExit)
                 {
                     this.TriggerShutdown = true;
@@ -238,15 +241,23 @@ namespace ChildProcesses
                 if (!this.watchdogTimeout && this.lastTimeAlive + this.WatchdogTimeout < DateTime.Now)
                 {
                     this.watchdogTimeout = true;
-                    this.RaiseProcessStateChangedEvent(ProcessStateChangedAction.WatchdogTimeout, null);
+                    this.RaiseProcessStateChangedEvent(ProcessStateChangedEnum.WatchdogTimeout, null);
                 }
             }
 
             if (this.TriggerShutdown && ! this.Shutdown)
             {
                 this.Shutdown = true;
-                this.RaiseProcessStateChangedEvent(ProcessStateChangedAction.ChildShutdown, null);
+                this.RaiseProcessStateChangedEvent(ProcessStateChangedEnum.ChildShutdown, null);
             }
+
+
+            if (this.ipcChannelAvailable && !this.ipcChannelAvailableMsgSend)
+            {
+                this.ipcChannelAvailableMsgSend = true;
+                this.RaiseProcessStateChangedEvent(ProcessStateChangedEnum.IpcChannelAvail, null);
+            }
+
 
             bool sendAliveMessages = this.LastAliveMessage + this.AliveMessageFrquency < DateTime.Now;
             if (!this.parentProcessExited && sendAliveMessages)
@@ -269,15 +280,31 @@ namespace ChildProcesses
                     throw;
                 }
             }
-
-            if (this.ipcChannelAvailable && ! this.ipcChannelAvailableMsgSend)
-            {
-                this.ipcChannelAvailableMsgSend = true;
-                this.RaiseProcessStateChangedEvent(ProcessStateChangedAction.IpcChannelAvail, null);
-            }
         }
 
         #endregion
+
+
+        /// <summary>
+        /// The dispose.
+        /// </summary>
+        /// <param name="disposing">The disposing.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (ipcChannel != null)
+            {
+                ((IChannel)ipcChannel).Abort();
+                ipcChannel = null;
+            }
+
+            if (ipcChannelFactory != null)
+            {
+                ipcChannelFactory.Abort();
+                ipcChannelFactory = null;
+            }
+
+            base.Dispose(disposing);
+        }
 
         #region Methods
 
@@ -291,6 +318,7 @@ namespace ChildProcesses
             if (! this.ipcChannelAvailable)
             {
                 this.ipcChannelAvailable = true;
+                this.TriggerWatchdog();
             }
         }
 
@@ -333,7 +361,7 @@ namespace ChildProcesses
         /// <param name="data">
         /// The data.
         /// </param>
-        protected virtual void RaiseProcessStateChangedEvent(ProcessStateChangedAction action, string data)
+        protected virtual void RaiseProcessStateChangedEvent(ProcessStateChangedEnum action, string data)
         {
             if (this.ProcessStateChanged != null)
             {
@@ -370,13 +398,16 @@ namespace ChildProcesses
 
             this.ParentCallbackEndpoint = (ParentChildIpc)Activator.CreateInstance(this.GetParentChildIpcType());
             this.ParentCallbackEndpoint.ChildProcessInstance = this;
+            
+            var binding = new NetNamedPipeBinding();
+            binding.Security.Mode = NetNamedPipeSecurityMode.None;
 
             return
                 (ChannelFactory)
                     Activator.CreateInstance(
                         channelFactoryType, 
-                        this.ParentCallbackEndpoint, 
-                        new NetNamedPipeBinding(), 
+                        this.ParentCallbackEndpoint,
+                        binding, 
                         new EndpointAddress("net.pipe://localhost/" + this.GetIpcUrlPrefix() + "/" + this.ParentProcess.Id + "/ParentChildIpc"));
         }
 
@@ -389,6 +420,18 @@ namespace ChildProcesses
             {
                 if (this.ParentProcess != null)
                 {
+                    if (ipcChannel != null)
+                    {
+                        ((IChannel)ipcChannel).Abort();
+                        ipcChannel = null;
+                    }
+
+                    if (ipcChannelFactory != null)
+                    {
+                        ipcChannelFactory.Abort();
+                        ipcChannelFactory = null;
+                    }
+
                     this.ipcChannelFactory = this.CreateChannelFactory();
                     this.ipcChannel = this.CreateChannel(this.ipcChannelFactory);
                 }

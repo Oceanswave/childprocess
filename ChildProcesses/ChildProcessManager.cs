@@ -15,22 +15,15 @@ namespace ChildProcesses
     using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.Remoting.Channels;
     using System.ServiceModel;
+    using System.Threading;
 
     /// <summary>
     ///     The child process manager.
     /// </summary>
-    public class ChildProcessManager : ProcessInstance, IEnumerable, IDisposable
+    public class ChildProcessManager : ProcessInstance, IEnumerable
     {
-        #region Static Fields
-
-        /// <summary>
-        ///     The parent process singleton.
-        /// </summary>
-        private static ChildProcessManager parentProcessSinglelton;
-
-        #endregion
-
         #region Fields
 
         /// <summary>
@@ -63,24 +56,13 @@ namespace ChildProcesses
         /// <exception cref="InvalidOperationException"></exception>
         public ChildProcessManager()
         {
-            if (parentProcessSinglelton != null)
-            {
-                throw new InvalidOperationException("ChildProcessManager Singleton already instantiated");
-            }
-
-            parentProcessSinglelton = this;
             this.childProcesses = new Dictionary<int, ChildProcess>();
             this.childProcessesLock = new object();
             this.ResetClientIpcHost();
+            this.StartWatchdog();
         }
 
-        /// <summary>
-        /// Finalizes an instance of the <see cref="ChildProcessManager"/> class. 
-        /// </summary>
-        ~ChildProcessManager()
-        {
-            this.Dispose(false);
-        }
+
 
         #endregion
 
@@ -109,45 +91,21 @@ namespace ChildProcesses
         /// <summary>
         ///     The process state changed.
         /// </summary>
-        public event ProcessStateChangedEventHandler ProcessStateChanged;
+        public event EventHandler<ProcessStateChangedEventArgs> ProcessStateChanged;
 
         #endregion
 
         #region Public Properties
 
         /// <summary>
-        /// Gets or sets a value indicating whether child debugger auto attach.
+        /// Gets or sets a value if the child should be signaled that a debugger will automatically attach after start. Child will wait until the debugger attaches.
         /// </summary>
         public static bool ChildDebuggerAutoAttach { get; set; }
 
-        /// <summary>
-        ///     Gets Current.
-        /// </summary>
-        public static ChildProcessManager Current
-        {
-            get
-            {
-                return parentProcessSinglelton;
-            }
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether is disposed.
-        /// </summary>
-        public bool IsDisposed { get; private set; }
 
         #endregion
 
         #region Public Methods and Operators
-
-        /// <summary>
-        /// The dispose.
-        /// </summary>
-        public void Dispose()
-        {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-        }
 
         /// <summary>
         /// The get enumerator.
@@ -163,10 +121,7 @@ namespace ChildProcesses
             }
         }
 
-        /// <summary>
-        ///     Watchdog Processing must periodically called to actualize state.
-        /// </summary>
-        public void ProcessWatchdog()
+        protected override void OnWatchdog()
         {
             var exitedProcesses = new List<ChildProcess>();
             ChildProcess[] currentChildProcesses;
@@ -189,20 +144,7 @@ namespace ChildProcesses
                 }
                 else
                 {
-                    if (!childProcess.ipcChannelAvail && childProcess.ParentChildIpc != null)
-                    {
-                        try
-                        {
-                            childProcess.ParentChildIpc.ParentIpcInit();
-                            childProcess.ipcChannelAvail = true;
-                            this.RaiseProcessStateChangedEvent(childProcess, ProcessStateChangedAction.IpcChannelAvail, null);
-                        }
-                        catch (Exception)
-                        {
-                            childProcess.ParentChildIpc = null;
-                        }
-                    }
-
+                    
                     if (sendAliveMessages)
                     {
                         try
@@ -218,23 +160,34 @@ namespace ChildProcesses
                         }
                     }
 
-                    if (!childProcess.ipcChannelAvail && childProcess.ParentChildIpc != null)
+
+                    // Parent-Child IPC channel becomes available
+                    if (childProcess.ParentChildIpc != null && !childProcess.parentChildIpcChannelAvail)
                     {
-                        childProcess.ipcChannelAvail = true;
-                        this.RaiseProcessStateChangedEvent(childProcess, ProcessStateChangedAction.IpcChannelAvail, null);
+                        try
+                        {
+                            childProcess.ParentChildIpc.ParentIpcInit();
+                            childProcess.parentChildIpcChannelAvail = true;
+                            this.RaiseProcessStateChangedEvent(childProcess, ProcessStateChangedEnum.IpcChannelAvail, null);
+                        }
+                        catch (Exception)
+                        {
+                            childProcess.ParentChildIpc = null;
+                        }
                     }
 
                     if (!childProcess.watchdogTimeout && childProcess.lastTimeAlive + this.WatchdogTimeout < DateTime.Now)
                     {
                         childProcess.watchdogTimeout = true;
-                        this.RaiseProcessStateChangedEvent(childProcess, ProcessStateChangedAction.WatchdogTimeout, null);
+                        this.RaiseProcessStateChangedEvent(childProcess, ProcessStateChangedEnum.WatchdogTimeout, null);
                     }
                 }
             }
 
+            // Exited Child Processes 
             foreach (var exitedProcess in exitedProcesses)
             {
-                this.RaiseProcessStateChangedEvent(exitedProcess, ProcessStateChangedAction.ChildExited, null);
+                this.RaiseProcessStateChangedEvent(exitedProcess, ProcessStateChangedEnum.ChildExited, null);
             }
 
             lock (this.childProcessesLock)
@@ -352,6 +305,7 @@ namespace ChildProcesses
                     getCallbackChannelMethod = getCallbackChannelMethod.MakeGenericMethod(this.GetIParentChildIpcType());
                     var callback = (IParentChildIpc)getCallbackChannelMethod.Invoke(operationContext, null);
                     child.ParentChildIpc = callback;
+                    this.TriggerWatchdog();
                 }
 
                 child.watchdogTimeout = false;
@@ -382,7 +336,7 @@ namespace ChildProcesses
         /// <param name="data">
         /// The data.
         /// </param>
-        protected internal virtual void RaiseProcessStateChangedEvent(ChildProcess childProcess, ProcessStateChangedAction action, string data)
+        protected internal virtual void RaiseProcessStateChangedEvent(ChildProcess childProcess, ProcessStateChangedEnum action, string data)
         {
             // Raise the event by using the () operator.
             if (this.ProcessStateChanged != null)
@@ -397,19 +351,69 @@ namespace ChildProcesses
         /// <param name="disposing">
         /// The disposing.
         /// </param>
-        protected virtual void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
-            this.IsDisposed = true;
+
             lock (this.childProcessesLock)
             {
                 foreach (var childProcess in this.childProcesses)
                 {
-                    if (! childProcess.Value.Process.HasExited)
+                    if (!childProcess.Value.Process.HasExited)
                     {
-                        childProcess.Value.Process.Kill();
+                        if (childProcess.Value.parentChildIpcChannelAvail)
+                        {
+                            childProcess.Value.ParentChildIpc.Shutdown();
+                        }
+                        else
+                        {
+                            childProcess.Value.Process.Kill();
+                        }
                     }
                 }
             }
+            
+            bool allExited = true;
+            for (int i = 0; i < 10; ++ i)
+            {
+                lock (this.childProcessesLock)
+                {
+                    Thread.Sleep(200);
+                    allExited = true;
+                    foreach (var childProcess in this.childProcesses)
+                    {
+                        if (!childProcess.Value.Process.HasExited)
+                        {
+                            allExited = false;
+                        }
+                    }
+                    if (allExited) break;
+                }
+            }
+
+            if (! allExited)
+            {
+                lock (this.childProcessesLock)
+                {
+                    foreach (var childProcess in this.childProcesses)
+                    {
+                        if (!childProcess.Value.Process.HasExited)
+                        {
+                            childProcess.Value.Process.Kill();
+                        }
+                    }
+                }
+            }
+
+            lock (ipcHostLock)
+            {
+                if (this.ipcHost != null)
+                {
+                    this.ipcHost.Close();
+                    this.ipcHost = null;
+                }
+            }
+
+            base.Dispose(disposing);
         }
 
         /// <summary>
@@ -493,10 +497,14 @@ namespace ChildProcesses
                     this.ipcHost = null;
                 }
 
+
+                var binding = new NetNamedPipeBinding();
+                binding.Security.Mode = NetNamedPipeSecurityMode.None;
+
                 var ipcEndpint = (ChildParentIpc)Activator.CreateInstance(this.GetChildParentIpcType());
                 ipcEndpint.Manager = this;
                 var newHost = new ServiceHost(ipcEndpint, new[] { new Uri("net.pipe://localhost/" + this.GetIpcUrlPrefix() + "/" + this.CurrentProcess.Id) });
-                newHost.AddServiceEndpoint(this.GetIChildParentIpcType(), new NetNamedPipeBinding(), "ParentChildIpc");
+                newHost.AddServiceEndpoint(this.GetIChildParentIpcType(), binding, "ParentChildIpc");
                 newHost.Faulted += new EventHandler(this.IpcHost_Faulted);
                 newHost.Open();
                 this.ipcHost = newHost;

@@ -11,12 +11,27 @@ namespace ChildProcesses
 {
     using System;
     using System.Diagnostics;
+    using System.Runtime.Remoting.Messaging;
+    using System.Threading;
 
     /// <summary>
     ///     The process instance.
     /// </summary>
-    public class ProcessInstance
+    public abstract class ProcessInstance: IDisposable
     {
+
+        private Thread watchdogThread;
+
+        private AutoResetEvent watchdogEvent = new AutoResetEvent(false);
+
+        private bool shutdown;
+
+
+        public void TriggerWatchdog()
+        {
+            watchdogEvent.Set();
+        }
+
         #region Constructors and Destructors
 
         /// <summary>
@@ -31,6 +46,76 @@ namespace ChildProcesses
         }
 
         #endregion
+
+        protected void StartWatchdog()
+        {
+            watchdogThread = new Thread(WatchdogThreadFkt);
+            watchdogThread.Start();
+        }
+
+        void WatchdogThreadFkt()
+        {
+            while (! shutdown)
+            {
+                watchdogEvent.WaitOne(200);
+                if (shutdown) return;
+                this.OnWatchdog();
+            }
+        }
+
+        protected abstract void OnWatchdog();
+
+        /// <summary>
+        /// Gets a value indicating whether is disposed.
+        /// </summary>
+        public bool IsDisposed { get; private set; }
+
+
+        /// <summary>
+        /// The dispose.
+        /// </summary>
+        public void Dispose()
+        {
+            if (!this.IsDisposed)
+            {
+                this.IsDisposed = true;
+                this.Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+        }
+
+        /// <summary>
+        /// Finalizes an instance of the <see cref="ChildProcessManager"/> class. 
+        /// </summary>
+        ~ProcessInstance()
+        {
+            this.IsDisposed = true;
+            this.Dispose(false);
+        }
+
+        /// <summary>
+        /// The dispose.
+        /// </summary>
+        /// <param name="disposing">
+        /// The disposing.
+        /// </param>
+        protected virtual void Dispose(bool disposing)
+        {
+            shutdown = true;
+            if (watchdogThread != null)
+            {
+                watchdogEvent.Set();
+                watchdogThread.Join(2000);
+                if (watchdogThread.IsAlive)
+                {
+                    watchdogThread.Abort();
+                    watchdogThread.Join(2000);
+                }
+                watchdogThread = null;
+                watchdogEvent = null;
+            }
+        }
+
 
         #region Public Properties
 

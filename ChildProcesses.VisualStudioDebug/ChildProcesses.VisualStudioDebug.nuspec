@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>ChildProcesses.VisualStudioDebug</id>
+    <title>Visual Studio Debug Helper for ChildProcesses (Child Process Management for .NET)</title>
+    <version>1.0.4.0</version>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+
+    <description>Visual Studio Debug Helper for ChildProcesses attaches the Visual Studio debugger automatically to any started child process with the ChildProcesses library.</description>
+    
+    <summary>Visual Studio Debug Helper for ChildProcesses attaches the Visual Studio debugger automatically to any started child process of the ChildProcess library.</summary>
+    
+    <releaseNotes />
+
+    <copyright>Copyright by Thomas Maierhofer</copyright>
+    <authors>Thomas Maierhofer</authors>
+    <owners>Thomas Maierhofer</owners>
+    
+    <tags>childprocess debugger DTE process spawn child parent AppDomain kill</tags>
+
+
+    <licenseUrl>http://childprocess.codeplex.com/</licenseUrl>
+    <projectUrl>http://wiki.maierhofer.de/project-child-process.ashx</projectUrl>
+    <!--<iconUrl></iconUrl>-->
+
+    <dependencies>
+      <dependency id="ChildProcesses" version="1.0.3.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\Release\ChildProcesses.VisualStudioDebug.dll" target="lib\net\ChildProcesses.dll" />
+    <file src="bin\Release\ChildProcesses.VisualStudioDebug.pdb" target="lib\net\ChildProcesses.pdb" />
+  </files>
+</package>

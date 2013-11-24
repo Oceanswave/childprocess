@@ -10,15 +10,21 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Child", "Child\Child.csproj", "{AD4E8BDB-DA4D-42E8-8C4B-E46732D9561F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parent", "Parent\Parent.csproj", "{09A2F51A-264E-4D80-BC07-04F1B751254F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AD4E8BDB-DA4D-42E8-8C4B-E46732D9561F} = {AD4E8BDB-DA4D-42E8-8C4B-E46732D9561F}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2EE9B37B-EB86-48BF-BD26-BE7C0AE0C0F7}"
 	ProjectSection(SolutionItems) = preProject
-		ChildProcesses.nuspec = ChildProcesses.nuspec
 		NugetPackages.csv = NugetPackages.csv
 		ReleaseFiles.csv = ReleaseFiles.csv
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChildProcesses.VisualStudioDebug", "ChildProcesses.VisualStudioDebug\ChildProcesses.VisualStudioDebug.csproj", "{55BBBB6D-FE95-448C-A3C3-2316AC922A55}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioUnitTestParent", "VisualStudioUnitTestParent\VisualStudioUnitTestParent.csproj", "{D9EE11D7-8556-472C-9538-8A2A6C5B23BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NUnitTestParent", "NUnitTestParent\NUnitTestParent.csproj", "{BA776F33-614D-449E-AD43-DD87C715EC4A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -46,6 +52,14 @@ Global
 		{55BBBB6D-FE95-448C-A3C3-2316AC922A55}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55BBBB6D-FE95-448C-A3C3-2316AC922A55}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55BBBB6D-FE95-448C-A3C3-2316AC922A55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9EE11D7-8556-472C-9538-8A2A6C5B23BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9EE11D7-8556-472C-9538-8A2A6C5B23BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9EE11D7-8556-472C-9538-8A2A6C5B23BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9EE11D7-8556-472C-9538-8A2A6C5B23BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA776F33-614D-449E-AD43-DD87C715EC4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA776F33-614D-449E-AD43-DD87C715EC4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA776F33-614D-449E-AD43-DD87C715EC4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA776F33-614D-449E-AD43-DD87C715EC4A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -10,6 +10,7 @@
 namespace ChildProcess
 {
     using System;
+    using System.Diagnostics;
     using System.Threading;
 
     using ChildProcesses;
@@ -17,7 +18,7 @@ namespace ChildProcess
     /// <summary>
     /// The program.
     /// </summary>
-    internal class Program
+    internal class ChildProgram
     {
         #region Methods
 
@@ -35,7 +36,6 @@ namespace ChildProcess
             Console.WriteLine("IPC Channel Bla: " + Environment.GetEnvironmentVariable("ChildProcessesIpcChannelPrefix"));
             while (! instance.Shutdown && ! instance.IpcChannelAvailable)
             {
-                instance.ProcessWatchdog();
                 Thread.Sleep(1000);
             }
 
@@ -49,7 +49,6 @@ namespace ChildProcess
 
             while (! instance.Shutdown)
             {
-                instance.ProcessWatchdog();
                 Thread.Sleep(1000);
             }
         }
@@ -66,7 +65,15 @@ namespace ChildProcess
         private static void instance_ProcessStateChanged(object sender, ProcessStateChangedEventArgs e)
         {
             var instance = (CustomizedChildProcessInstance)sender;
-            Console.WriteLine("Child Process State Changed: " + e.Action);
+            switch (e.Action)
+            {
+                case ProcessStateChangedEnum.IpcChannelAvail:
+                    Console.WriteLine("Child Process IpcChannelAvail");
+                    break;
+                default:
+                    Console.WriteLine("Child Process State Changed: " + e.Action);
+                    break;
+            }
         }
 
         #endregion
