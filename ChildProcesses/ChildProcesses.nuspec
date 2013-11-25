@@ -3,7 +3,7 @@
   <metadata>
     <id>ChildProcesses</id>
     <title>ChildProcesses - Child Process Management for .NET</title>
-    <version>1.0.5.0</version>
+    <version>1.0.6.0</version>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>
       ChildProcesses is a child process management library for the .NET Framework.
@@ -17,10 +17,10 @@
       Release 1.0.4 breaking changes:
 
       - ProcessWatchdog() is removed, the ProcessInstance class (ChildProcessManager, ChildProcessInstance) introduces an internal watchdog thread.
-      
+
       - The ProcessInstance class (ChildProcessManager, ChildProcessInstance) implements the IDisposable interface to shut the instance down
       - ProcessStateChangedAction is renamed in ProcessStateChangedEnum
-      
+
     </releaseNotes>
     <copyright>Copyright by Thomas Maierhofer</copyright>
     <authors>Thomas Maierhofer</authors>

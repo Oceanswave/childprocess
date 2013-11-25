@@ -20,7 +20,7 @@ namespace ChildProcesses
         #region Public Properties
 
         /// <summary>
-        /// Gets the manager.
+        ///     Gets the manager.
         /// </summary>
         public ChildProcessManager Manager { get; internal set; }
 

@@ -17,18 +17,15 @@ namespace ChildProcesses.VisualStudioDebug
 
     using EnvDTE;
 
-    using Process = System.Diagnostics.Process;
-
     /// <summary>
-    /// The visual studio debug helper.
+    ///     The visual studio debug helper.
     /// </summary>
     public class VisualStudioDebugHelper
     {
         #region Constants
 
-
         /// <summary>
-        ///  COM application is busy and can't handle the call
+        ///     COM application is busy and can't handle the call
         /// </summary>
         private const int RPC_E_SERVERCALL_RETRYLATER = unchecked((int)0x8001010A);
 
@@ -37,7 +34,7 @@ namespace ChildProcesses.VisualStudioDebug
         #region Static Fields
 
         /// <summary>
-        /// The debugging DTE.
+        ///     The debugging DTE.
         /// </summary>
         private static DTE debuggingDte;
 
@@ -45,11 +42,12 @@ namespace ChildProcesses.VisualStudioDebug
 
         #region Public Methods and Operators
 
-
         /// <summary>
         /// Attaches the debugger to the process.
         /// </summary>
-        /// <param name="childProcessId">The child process unique identifier.</param>
+        /// <param name="childProcessId">
+        /// The child process unique identifier.
+        /// </param>
         [STAThread]
         public static void AttachDebuggerToProcess(int childProcessId)
         {
@@ -58,10 +56,10 @@ namespace ChildProcesses.VisualStudioDebug
                 return;
             }
 
-            EnvDTE.Process childProcess = null;
+            Process childProcess = null;
             try
             {
-                IEnumerable<EnvDTE.Process> localProcesses = debuggingDte.Debugger.LocalProcesses.OfType<EnvDTE.Process>();
+                IEnumerable<Process> localProcesses = debuggingDte.Debugger.LocalProcesses.OfType<Process>();
 
                 foreach (var process in localProcesses)
                 {
@@ -87,9 +85,8 @@ namespace ChildProcesses.VisualStudioDebug
             }
         }
 
-
         /// <summary>
-        /// Registers the Helper.
+        ///     Registers the Helper.
         /// </summary>
         public static void Register()
         {
@@ -102,9 +99,8 @@ namespace ChildProcesses.VisualStudioDebug
             }
         }
 
-
         /// <summary>
-        /// Revokes the Helper.
+        ///     Revokes the Helper.
         /// </summary>
         public static void Revoke()
         {
@@ -144,15 +140,15 @@ namespace ChildProcesses.VisualStudioDebug
         private static extern void CreateBindCtx(int reserved, out IBindCtx ppbc);
 
         /// <summary>
-        /// The get debugging dte instance.
+        ///     The get debugging dte instance.
         /// </summary>
         /// <returns>
-        /// The <see cref="DTE"/>.
+        ///     The <see cref="DTE" />.
         /// </returns>
         [STAThread]
         private static DTE GetDebuggingDteInstance()
         {
-            int currentProcessId = Process.GetCurrentProcess().Id;
+            int currentProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
 
             foreach (var dte in GetVisualStudioInstances())
             {
@@ -160,7 +156,7 @@ namespace ChildProcesses.VisualStudioDebug
                 {
                     if (dte.Debugger != null && dte.Debugger.DebuggedProcesses != null)
                     {
-                        IEnumerable<EnvDTE.Process> debuggedProcesses = dte.Debugger.DebuggedProcesses.OfType<EnvDTE.Process>();
+                        IEnumerable<Process> debuggedProcesses = dte.Debugger.DebuggedProcesses.OfType<Process>();
 
                         foreach (var process in debuggedProcesses)
                         {
@@ -201,10 +197,10 @@ namespace ChildProcesses.VisualStudioDebug
         private static extern int GetRunningObjectTable(int reserved, out IRunningObjectTable prot);
 
         /// <summary>
-        /// The get visual studio instances.
+        ///     The get visual studio instances.
         /// </summary>
         /// <returns>
-        /// The <see cref="IEnumerable"/>.
+        ///     The <see cref="IEnumerable" />.
         /// </returns>
         private static IEnumerable<DTE> GetVisualStudioInstances()
         {
@@ -270,7 +266,7 @@ namespace ChildProcesses.VisualStudioDebug
     }
 
     /// <summary>
-    /// The message filter.
+    ///     The message filter.
     /// </summary>
     public class MessageFilter : IOleMessageFilter
     {
@@ -284,7 +280,7 @@ namespace ChildProcesses.VisualStudioDebug
         #region Public Methods and Operators
 
         /// <summary>
-        /// The register.
+        ///     The register.
         /// </summary>
         public static void Register()
         {
@@ -295,7 +291,7 @@ namespace ChildProcesses.VisualStudioDebug
 
         // Done with the filter, close it.
         /// <summary>
-        /// The revoke.
+        ///     The revoke.
         /// </summary>
         public static void Revoke()
         {
@@ -405,7 +401,7 @@ namespace ChildProcesses.VisualStudioDebug
     }
 
     /// <summary>
-    /// The OleMessageFilter interface.
+    ///     The OleMessageFilter interface.
     /// </summary>
     [ComImport]
     [Guid("00000016-0000-0000-C000-000000000046")]

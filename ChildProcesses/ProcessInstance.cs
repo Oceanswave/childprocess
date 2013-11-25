@@ -15,7 +15,7 @@ namespace ChildProcesses
     using System.Threading;
 
     /// <summary>
-    ///     The process instance.
+    ///     Process instance is the abstract instance of a running process - parent or child
     /// </summary>
     public abstract class ProcessInstance: IDisposable
     {
@@ -26,6 +26,13 @@ namespace ChildProcesses
 
         private bool shutdown;
 
+        /// <summary>
+        /// Gets or sets the watchdog interval.
+        /// </summary>
+        /// <value>
+        /// The watchdog interval.
+        /// </value>
+        TimeSpan WatchdogInterval { get; set; }
 
         public void TriggerWatchdog()
         {
@@ -40,6 +47,7 @@ namespace ChildProcesses
         protected ProcessInstance()
         {
             this.CurrentProcess = Process.GetCurrentProcess();
+            WatchdogInterval = TimeSpan.FromMilliseconds(500);
             this.WatchdogTimeout = new TimeSpan(0, 1, 0);
             this.AliveMessageFrquency = new TimeSpan(0, 0, 10);
             this.LastAliveMessage = DateTime.MinValue;
@@ -47,22 +55,33 @@ namespace ChildProcesses
 
         #endregion
 
+        /// <summary>
+        /// Starts the watchdog.
+        /// </summary>
         protected void StartWatchdog()
         {
             watchdogThread = new Thread(WatchdogThreadFkt);
+            watchdogThread.Name = "ChildProcesses.Watchdog";
+            watchdogThread.Priority = ThreadPriority.AboveNormal;
             watchdogThread.Start();
         }
 
+        /// <summary>
+        /// The watchdog thread function
+        /// </summary>
         void WatchdogThreadFkt()
         {
             while (! shutdown)
             {
-                watchdogEvent.WaitOne(200);
+                watchdogEvent.WaitOne(WatchdogInterval);
                 if (shutdown) return;
                 this.OnWatchdog();
             }
         }
 
+        /// <summary>
+        /// Called when the watchdog interval is over
+        /// </summary>
         protected abstract void OnWatchdog();
 
         /// <summary>

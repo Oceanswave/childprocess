@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ProcessStateChangedAction.cs" company="Maierhofer Software, Germany">
+// <copyright file="ProcessStateChangedEnum.cs" company="Maierhofer Software, Germany">
 //   Copyright 2012 by Maierhofer Software, Germany
 // </copyright>
 // <summary>

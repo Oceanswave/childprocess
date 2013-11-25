@@ -15,8 +15,9 @@ namespace ChildProcesses
     using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
-    using System.Runtime.Remoting.Channels;
+    using System.Security.Cryptography;
     using System.ServiceModel;
+    using System.Text;
     using System.Threading;
 
     /// <summary>
@@ -46,7 +47,34 @@ namespace ChildProcesses
         /// </summary>
         private object ipcHostLock = new object();
 
+        private string ipcChannelDynamicUrlPart;
+
         #endregion
+
+        public static string GetUniqueString(int maxSize)
+        {
+            char[] chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
+            
+            RNGCryptoServiceProvider crypto = new RNGCryptoServiceProvider();
+
+            var seed = new byte[1];
+            crypto.GetBytes(seed);
+
+            var randomData = new byte[maxSize * 2];
+            crypto.GetBytes(randomData);
+
+            StringBuilder result = new StringBuilder(maxSize);
+
+            for( int i = 0; i < randomData.Length; i += 2)
+            {
+                // minimize bias and distribute bias unpredictable over the string
+                int charsOffset = (randomData[i] * 256) + randomData[i+1] + seed[0] + i;
+                result.Append(chars[charsOffset % chars.Length]);
+            }
+            return result.ToString();
+        }
+
+
 
         #region Constructors and Destructors
 
@@ -56,13 +84,12 @@ namespace ChildProcesses
         /// <exception cref="InvalidOperationException"></exception>
         public ChildProcessManager()
         {
+            ipcChannelDynamicUrlPart = GetUniqueString(32);
             this.childProcesses = new Dictionary<int, ChildProcess>();
             this.childProcessesLock = new object();
             this.ResetClientIpcHost();
             this.StartWatchdog();
         }
-
-
 
         #endregion
 
@@ -84,7 +111,7 @@ namespace ChildProcesses
         #region Public Events
 
         /// <summary>
-        /// The child process started.
+        ///     The child process started.
         /// </summary>
         public static event EventHandler<ProcessStartEventArgs> ChildProcessStarted;
 
@@ -98,104 +125,26 @@ namespace ChildProcesses
         #region Public Properties
 
         /// <summary>
-        /// Gets or sets a value if the child should be signaled that a debugger will automatically attach after start. Child will wait until the debugger attaches.
+        ///     Gets or sets a value if the child should be signaled that a debugger will automatically attach after start. Child
+        ///     will wait until the debugger attaches.
         /// </summary>
         public static bool ChildDebuggerAutoAttach { get; set; }
-
 
         #endregion
 
         #region Public Methods and Operators
 
         /// <summary>
-        /// The get enumerator.
+        ///     The get enumerator.
         /// </summary>
         /// <returns>
-        /// The <see cref="IEnumerator"/>.
+        ///     The <see cref="IEnumerator" />.
         /// </returns>
         public IEnumerator GetEnumerator()
         {
             lock (this.childProcessesLock)
             {
                 return this.childProcesses.Values.ToArray().GetEnumerator();
-            }
-        }
-
-        protected override void OnWatchdog()
-        {
-            var exitedProcesses = new List<ChildProcess>();
-            ChildProcess[] currentChildProcesses;
-            lock (this.childProcessesLock)
-            {
-                currentChildProcesses = this.childProcesses.Values.ToArray();
-            }
-
-            bool sendAliveMessages = this.LastAliveMessage + this.AliveMessageFrquency < DateTime.Now;
-            if (sendAliveMessages)
-            {
-                this.LastAliveMessage = DateTime.Now;
-            }
-
-            foreach (var childProcess in currentChildProcesses)
-            {
-                if (childProcess.Process.HasExited)
-                {
-                    exitedProcesses.Add(childProcess);
-                }
-                else
-                {
-                    
-                    if (sendAliveMessages)
-                    {
-                        try
-                        {
-                            if (childProcess.ParentChildIpc != null)
-                            {
-                                childProcess.ParentChildIpc.ParentAlive();
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            childProcess.ParentChildIpc = null;
-                        }
-                    }
-
-
-                    // Parent-Child IPC channel becomes available
-                    if (childProcess.ParentChildIpc != null && !childProcess.parentChildIpcChannelAvail)
-                    {
-                        try
-                        {
-                            childProcess.ParentChildIpc.ParentIpcInit();
-                            childProcess.parentChildIpcChannelAvail = true;
-                            this.RaiseProcessStateChangedEvent(childProcess, ProcessStateChangedEnum.IpcChannelAvail, null);
-                        }
-                        catch (Exception)
-                        {
-                            childProcess.ParentChildIpc = null;
-                        }
-                    }
-
-                    if (!childProcess.watchdogTimeout && childProcess.lastTimeAlive + this.WatchdogTimeout < DateTime.Now)
-                    {
-                        childProcess.watchdogTimeout = true;
-                        this.RaiseProcessStateChangedEvent(childProcess, ProcessStateChangedEnum.WatchdogTimeout, null);
-                    }
-                }
-            }
-
-            // Exited Child Processes 
-            foreach (var exitedProcess in exitedProcesses)
-            {
-                this.RaiseProcessStateChangedEvent(exitedProcess, ProcessStateChangedEnum.ChildExited, null);
-            }
-
-            lock (this.childProcessesLock)
-            {
-                foreach (var exitedProcess in exitedProcesses)
-                {
-                    this.childProcesses.Remove(exitedProcess.Process.Id);
-                }
             }
         }
 
@@ -231,7 +180,7 @@ namespace ChildProcesses
             processInfo.RedirectStandardInput = true;
             processInfo.RedirectStandardError = true;
             processInfo.UseShellExecute = false;
-            processInfo.EnvironmentVariables.Add("ChildProcesses.IpcChannelPrefix", "lkasdjf -asd");
+            processInfo.EnvironmentVariables.Add("ChildProcesses.IpcDynamicUrlPart", ipcChannelDynamicUrlPart);
             if (ChildDebuggerAutoAttach && Debugger.IsAttached)
             {
                 processInfo.EnvironmentVariables.Add("ChildProcesses.AutoAttachDebugger", "True");
@@ -353,7 +302,6 @@ namespace ChildProcesses
         /// </param>
         protected override void Dispose(bool disposing)
         {
-
             lock (this.childProcessesLock)
             {
                 foreach (var childProcess in this.childProcesses)
@@ -371,7 +319,7 @@ namespace ChildProcesses
                     }
                 }
             }
-            
+
             bool allExited = true;
             for (int i = 0; i < 10; ++ i)
             {
@@ -386,7 +334,11 @@ namespace ChildProcesses
                             allExited = false;
                         }
                     }
-                    if (allExited) break;
+
+                    if (allExited)
+                    {
+                        break;
+                    }
                 }
             }
 
@@ -404,7 +356,7 @@ namespace ChildProcesses
                 }
             }
 
-            lock (ipcHostLock)
+            lock (this.ipcHostLock)
             {
                 if (this.ipcHost != null)
                 {
@@ -417,10 +369,10 @@ namespace ChildProcesses
         }
 
         /// <summary>
-        /// Gets the type of the child parent IPC channel.
+        ///     Gets the type of the child parent IPC channel.
         /// </summary>
         /// <returns>
-        /// The <see cref="Type"/>.
+        ///     The <see cref="Type" />.
         /// </returns>
         protected virtual Type GetChildParentIpcType()
         {
@@ -428,10 +380,10 @@ namespace ChildProcesses
         }
 
         /// <summary>
-        /// Gets the interface type of the child to parent IPC channel.
+        ///     Gets the interface type of the child to parent IPC channel.
         /// </summary>
         /// <returns>
-        /// The <see cref="Type"/>.
+        ///     The <see cref="Type" />.
         /// </returns>
         protected virtual Type GetIChildParentIpcType()
         {
@@ -439,14 +391,93 @@ namespace ChildProcesses
         }
 
         /// <summary>
-        /// Gets the interface type of the parent to child IPC channel
+        ///     Gets the interface type of the parent to child IPC channel
         /// </summary>
         /// <returns>
-        /// The <see cref="Type"/>.
+        ///     The <see cref="Type" />.
         /// </returns>
         protected virtual Type GetIParentChildIpcType()
         {
             return typeof(IParentChildIpc);
+        }
+
+        /// <summary>
+        /// The on watchdog.
+        /// </summary>
+        protected override void OnWatchdog()
+        {
+            var exitedProcesses = new List<ChildProcess>();
+            ChildProcess[] currentChildProcesses;
+            lock (this.childProcessesLock)
+            {
+                currentChildProcesses = this.childProcesses.Values.ToArray();
+            }
+
+            bool sendAliveMessages = this.LastAliveMessage + this.AliveMessageFrquency < DateTime.Now;
+            if (sendAliveMessages)
+            {
+                this.LastAliveMessage = DateTime.Now;
+            }
+
+            foreach (var childProcess in currentChildProcesses)
+            {
+                if (childProcess.Process.HasExited)
+                {
+                    exitedProcesses.Add(childProcess);
+                }
+                else
+                {
+                    if (sendAliveMessages)
+                    {
+                        try
+                        {
+                            if (childProcess.ParentChildIpc != null)
+                            {
+                                childProcess.ParentChildIpc.ParentAlive();
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            childProcess.ParentChildIpc = null;
+                        }
+                    }
+
+                    // Parent-Child IPC channel becomes available
+                    if (childProcess.ParentChildIpc != null && !childProcess.parentChildIpcChannelAvail)
+                    {
+                        try
+                        {
+                            childProcess.ParentChildIpc.ParentIpcInit();
+                            childProcess.parentChildIpcChannelAvail = true;
+                            this.RaiseProcessStateChangedEvent(childProcess, ProcessStateChangedEnum.IpcChannelAvail, null);
+                        }
+                        catch (Exception)
+                        {
+                            childProcess.ParentChildIpc = null;
+                        }
+                    }
+
+                    if (!childProcess.watchdogTimeout && childProcess.lastTimeAlive + this.WatchdogTimeout < DateTime.Now)
+                    {
+                        childProcess.watchdogTimeout = true;
+                        this.RaiseProcessStateChangedEvent(childProcess, ProcessStateChangedEnum.WatchdogTimeout, null);
+                    }
+                }
+            }
+
+            // Exited Child Processes 
+            foreach (var exitedProcess in exitedProcesses)
+            {
+                this.RaiseProcessStateChangedEvent(exitedProcess, ProcessStateChangedEnum.ChildExited, null);
+            }
+
+            lock (this.childProcessesLock)
+            {
+                foreach (var exitedProcess in exitedProcesses)
+                {
+                    this.childProcesses.Remove(exitedProcess.Process.Id);
+                }
+            }
         }
 
         /// <summary>
@@ -497,13 +528,12 @@ namespace ChildProcesses
                     this.ipcHost = null;
                 }
 
-
                 var binding = new NetNamedPipeBinding();
                 binding.Security.Mode = NetNamedPipeSecurityMode.None;
 
                 var ipcEndpint = (ChildParentIpc)Activator.CreateInstance(this.GetChildParentIpcType());
                 ipcEndpint.Manager = this;
-                var newHost = new ServiceHost(ipcEndpint, new[] { new Uri("net.pipe://localhost/" + this.GetIpcUrlPrefix() + "/" + this.CurrentProcess.Id) });
+                var newHost = new ServiceHost(ipcEndpint, new[] { new Uri("net.pipe://localhost/" + this.GetIpcUrlPrefix() + ipcChannelDynamicUrlPart +  "/" + this.CurrentProcess.Id) });
                 newHost.AddServiceEndpoint(this.GetIChildParentIpcType(), binding, "ParentChildIpc");
                 newHost.Faulted += new EventHandler(this.IpcHost_Faulted);
                 newHost.Open();
@@ -514,24 +544,24 @@ namespace ChildProcesses
         #endregion
 
         /// <summary>
-        /// The process start event args.
+        ///     The process start event args.
         /// </summary>
         public class ProcessStartEventArgs : EventArgs
         {
             #region Public Properties
 
             /// <summary>
-            /// Gets or sets the manager.
+            ///     Gets or sets the manager.
             /// </summary>
             public ChildProcessManager Manager { get; set; }
 
             /// <summary>
-            /// Gets the process start info.
+            ///     Gets the process start info.
             /// </summary>
             public ProcessStartInfo ProcessStartInfo { get; internal set; }
 
             /// <summary>
-            /// Gets the started process.
+            ///     Gets the started process.
             /// </summary>
             public ChildProcess StartedProcess { get; internal set; }
 

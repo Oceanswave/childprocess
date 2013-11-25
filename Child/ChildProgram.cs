@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="Program.cs" company="">
+// <copyright file="ChildProgram.cs" company="">
 //   
 // </copyright>
 // <summary>
@@ -16,7 +16,7 @@ namespace ChildProcess
     using ChildProcesses;
 
     /// <summary>
-    /// The program.
+    ///     The program.
     /// </summary>
     internal class ChildProgram
     {
@@ -32,8 +32,8 @@ namespace ChildProcess
         {
             var instance = new CustomizedChildProcessInstance();
             instance.ProcessStateChanged += new ChildProcessInstance.ProcessStateChangedEventHandler(instance_ProcessStateChanged);
-            Console.WriteLine("Child begins with ProcessWatchdog Loop");
-            Console.WriteLine("IPC Channel Bla: " + Environment.GetEnvironmentVariable("ChildProcessesIpcChannelPrefix"));
+            Console.WriteLine("Child Started");
+            Console.WriteLine("Debugger Attached: " + Debugger.IsAttached);
             while (! instance.Shutdown && ! instance.IpcChannelAvailable)
             {
                 Thread.Sleep(1000);

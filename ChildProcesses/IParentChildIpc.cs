@@ -26,7 +26,7 @@ namespace ChildProcesses
         void ParentAlive();
 
         /// <summary>
-        /// The parent ipc init.
+        ///     The parent ipc init.
         /// </summary>
         [OperationContract]
         void ParentIpcInit();

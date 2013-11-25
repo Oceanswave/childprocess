@@ -1,7 +1,15 @@
-﻿using System;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="UnitTest.cs" company="">
+//   
+// </copyright>
+// <summary>
+//   The unit test.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace VisualStudioUnitTestParent
 {
+    using System;
     using System.Diagnostics;
     using System.IO;
     using System.Threading;
@@ -9,20 +17,44 @@ namespace VisualStudioUnitTestParent
     using ChildProcesses;
     using ChildProcesses.VisualStudioDebug;
 
+    using NUnit.Framework;
 
-
-    [NUnit.Framework.TestFixture]
+    /// <summary>
+    /// The unit test.
+    /// </summary>
+    [TestFixture]
     public class UnitTest
     {
+        #region Fields
+
+        /// <summary>
+        /// The manager.
+        /// </summary>
         private CustomizedChildProcessManager manager;
 
-        [NUnit.Framework.TestFixtureSetUp]
+        #endregion
+
+        #region Public Methods and Operators
+
+        /// <summary>
+        /// The cleanup.
+        /// </summary>
+        [TestFixtureTearDown]
+        public void Cleanup()
+        {
+            this.manager.Dispose();
+        }
+
+        /// <summary>
+        /// The initialize.
+        /// </summary>
+        [TestFixtureSetUp]
         public void Initialize()
         {
             VisualStudioDebugHelper.Register();
 
-            manager = new CustomizedChildProcessManager();
-            manager.ProcessStateChanged += ManagerOnProcessStateChanged;
+            this.manager = new CustomizedChildProcessManager();
+            this.manager.ProcessStateChanged += this.ManagerOnProcessStateChanged;
 
             string childProcessExePath = @"..\..\..\Child\bin";
 #if DEBUG
@@ -37,10 +69,40 @@ namespace VisualStudioUnitTestParent
 
             var processInfo = new ProcessStartInfo(childProcessExePath);
             var childProcess = new CustomizedChildProcess();
-            manager.StartChildProcess(processInfo, childProcess);
-
+            this.manager.StartChildProcess(processInfo, childProcess);
         }
 
+        /// <summary>
+        /// The test method 1.
+        /// </summary>
+        [Test]
+        public void TestMethod1()
+        {
+            Thread.Sleep(2000);
+        }
+
+        /// <summary>
+        /// The test method 2.
+        /// </summary>
+        [Test]
+        public void TestMethod2()
+        {
+            Thread.Sleep(2000);
+        }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// The manager on process state changed.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="processStateChangedEventArgs">
+        /// The process state changed event args.
+        /// </param>
         private void ManagerOnProcessStateChanged(object sender, ProcessStateChangedEventArgs processStateChangedEventArgs)
         {
             switch (processStateChangedEventArgs.Action)
@@ -54,23 +116,6 @@ namespace VisualStudioUnitTestParent
             }
         }
 
-        [NUnit.Framework.TestFixtureTearDown]
-        public void Cleanup()
-        {
-            manager.Dispose();
-        }
-
-        [NUnit.Framework.Test]
-        public void TestMethod1()
-        {
-            Thread.Sleep(2000);
-        }
-
-        [NUnit.Framework.Test]
-        public void TestMethod2()
-        {
-            Thread.Sleep(2000);
-        }
-
+        #endregion
     }
 }

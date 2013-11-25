@@ -19,10 +19,10 @@ namespace ChildProcesses
         #region Methods
 
         /// <summary>
-        /// The get i child parent ipc type.
+        ///     The get i child parent ipc type.
         /// </summary>
         /// <returns>
-        /// The <see cref="Type"/>.
+        ///     The <see cref="Type" />.
         /// </returns>
         protected override Type GetIChildParentIpcType()
         {
@@ -30,10 +30,10 @@ namespace ChildProcesses
         }
 
         /// <summary>
-        /// The get parent child ipc type.
+        ///     The get parent child ipc type.
         /// </summary>
         /// <returns>
-        /// The <see cref="Type"/>.
+        ///     The <see cref="Type" />.
         /// </returns>
         protected override Type GetParentChildIpcType()
         {

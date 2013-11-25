@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="Program.cs" company="">
+// <copyright file="ParentProgram.cs" company="">
 //   
 // </copyright>
 // <summary>
@@ -18,7 +18,7 @@ namespace ParentProcess
     using ChildProcesses.VisualStudioDebug;
 
     /// <summary>
-    /// The program.
+    ///     The program.
     /// </summary>
     internal class ParentProgram
     {
@@ -67,8 +67,6 @@ namespace ParentProcess
 
             Thread.Sleep(20000);
         }
-
-
 
         /// <summary>
         /// The manager_ process state changed.

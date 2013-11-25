@@ -34,7 +34,7 @@ namespace ChildProcesses
         }
 
         /// <summary>
-        /// The parent ipc init.
+        ///     The parent ipc init.
         /// </summary>
         public void ParentIpcInit()
         {

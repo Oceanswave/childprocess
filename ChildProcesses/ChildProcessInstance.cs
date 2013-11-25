@@ -3,7 +3,7 @@
 //   Copyright 2012 by Maierhofer Software, Germany
 // </copyright>
 // <summary>
-//   The child process instance.
+//   The Child Process Instance represents the child process itself. It is instantiated on the child.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -11,18 +11,21 @@ namespace ChildProcesses
 {
     using System;
     using System.Diagnostics;
-    using System.Net.Security;
     using System.Reflection;
     using System.ServiceModel;
     using System.ServiceModel.Channels;
     using System.Threading;
 
-
     /// <summary>
-    /// The Child Process Instance represents the child process itself. It is instantiated on the child.
+    ///     The Child Process Instance represents the child process itself. It is instantiated on the child.
     /// </summary>
     public class ChildProcessInstance : ProcessInstance
     {
+        /// <summary>
+        /// A dynamic URL part for the IPC channel, transfered from server to client
+        /// </summary>
+        private string ipcChannelDynamicUrlPart;
+
         #region Static Fields
 
         /// <summary>
@@ -40,12 +43,12 @@ namespace ChildProcesses
         private IChildParentIpc ipcChannel;
 
         /// <summary>
-        /// The ipc channel available.
+        ///     The ipc channel available.
         /// </summary>
         private bool ipcChannelAvailable;
 
         /// <summary>
-        /// The ipc channel available msg send.
+        ///     The ipc channel available msg send.
         /// </summary>
         private bool ipcChannelAvailableMsgSend;
 
@@ -84,7 +87,7 @@ namespace ChildProcesses
         /// <exception cref="InvalidOperationException"></exception>
         public ChildProcessInstance()
         {
-            if (bool.Parse(Environment.GetEnvironmentVariable("ChildProcesses.AutoAttachDebugger") ?? "False"))
+            if (bool.Parse(Environment.GetEnvironmentVariable("ChildProcesses.AutoAttachDebugger")))
             {
                 for (int i = 0; i < 30; ++i)
                 {
@@ -95,7 +98,12 @@ namespace ChildProcesses
                         break;
                     }
                 }
+
+                Thread.Sleep(200);
             }
+
+            ipcChannelDynamicUrlPart = Environment.GetEnvironmentVariable("ChildProcesses.IpcDynamicUrlPart");
+            if (string.IsNullOrEmpty(ipcChannelDynamicUrlPart)) throw new InvalidOperationException("Dynamic URL Part is not transfered to client");
 
             if (childProcessSinglelton != null)
             {
@@ -163,7 +171,7 @@ namespace ChildProcesses
         }
 
         /// <summary>
-        /// Gets the child parent ipc.
+        ///     Gets the child parent ipc.
         /// </summary>
         public IChildParentIpc ChildParentIpc
         {
@@ -177,7 +185,7 @@ namespace ChildProcesses
         }
 
         /// <summary>
-        /// Gets a value indicating whether ipc channel available.
+        ///     Gets a value indicating whether ipc channel available.
         /// </summary>
         public bool IpcChannelAvailable
         {
@@ -217,94 +225,14 @@ namespace ChildProcesses
         #region Public Methods and Operators
 
         /// <summary>
-        /// The on parent ipc init.
+        ///     The on parent ipc init.
         /// </summary>
         public void OnParentIpcInit()
         {
             this.OnParentAlive();
         }
 
-        protected override void OnWatchdog()
-        {
-            
-            if (this.ParentProcess.HasExited && ! this.parentProcessExited)
-            {
-                this.parentProcessExited = true;
-                this.RaiseProcessStateChangedEvent(ProcessStateChangedEnum.ParentExited, null);
-                if (this.ShutdownOnParentExit)
-                {
-                    this.TriggerShutdown = true;
-                }
-            }
-            else
-            {
-                if (!this.watchdogTimeout && this.lastTimeAlive + this.WatchdogTimeout < DateTime.Now)
-                {
-                    this.watchdogTimeout = true;
-                    this.RaiseProcessStateChangedEvent(ProcessStateChangedEnum.WatchdogTimeout, null);
-                }
-            }
-
-            if (this.TriggerShutdown && ! this.Shutdown)
-            {
-                this.Shutdown = true;
-                this.RaiseProcessStateChangedEvent(ProcessStateChangedEnum.ChildShutdown, null);
-            }
-
-
-            if (this.ipcChannelAvailable && !this.ipcChannelAvailableMsgSend)
-            {
-                this.ipcChannelAvailableMsgSend = true;
-                this.RaiseProcessStateChangedEvent(ProcessStateChangedEnum.IpcChannelAvail, null);
-            }
-
-
-            bool sendAliveMessages = this.LastAliveMessage + this.AliveMessageFrquency < DateTime.Now;
-            if (!this.parentProcessExited && sendAliveMessages)
-            {
-                try
-                {
-                    this.ipcChannel.ChildAlive(this.CurrentProcess.Id);
-                    this.LastAliveMessage = DateTime.Now;
-                }
-                catch (EndpointNotFoundException)
-                {
-                    this.ResetIpcChannel();
-                }
-                catch (CommunicationObjectFaultedException)
-                {
-                    this.ResetIpcChannel();
-                }
-                catch (Exception)
-                {
-                    throw;
-                }
-            }
-        }
-
         #endregion
-
-
-        /// <summary>
-        /// The dispose.
-        /// </summary>
-        /// <param name="disposing">The disposing.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (ipcChannel != null)
-            {
-                ((IChannel)ipcChannel).Abort();
-                ipcChannel = null;
-            }
-
-            if (ipcChannelFactory != null)
-            {
-                ipcChannelFactory.Abort();
-                ipcChannelFactory = null;
-            }
-
-            base.Dispose(disposing);
-        }
 
         #region Methods
 
@@ -331,10 +259,33 @@ namespace ChildProcesses
         }
 
         /// <summary>
-        /// The get i child parent ipc type.
+        /// The dispose.
+        /// </summary>
+        /// <param name="disposing">
+        /// The disposing.
+        /// </param>
+        protected override void Dispose(bool disposing)
+        {
+            if (this.ipcChannel != null)
+            {
+                ((IChannel)this.ipcChannel).Abort();
+                this.ipcChannel = null;
+            }
+
+            if (this.ipcChannelFactory != null)
+            {
+                this.ipcChannelFactory.Abort();
+                this.ipcChannelFactory = null;
+            }
+
+            base.Dispose(disposing);
+        }
+
+        /// <summary>
+        ///     The get i child parent ipc type.
         /// </summary>
         /// <returns>
-        /// The <see cref="Type"/>.
+        ///     The <see cref="Type" />.
         /// </returns>
         protected virtual Type GetIChildParentIpcType()
         {
@@ -342,14 +293,72 @@ namespace ChildProcesses
         }
 
         /// <summary>
-        /// The get parent child ipc type.
+        ///     The get parent child ipc type.
         /// </summary>
         /// <returns>
-        /// The <see cref="Type"/>.
+        ///     The <see cref="Type" />.
         /// </returns>
         protected virtual Type GetParentChildIpcType()
         {
             return typeof(ParentChildIpc);
+        }
+
+        /// <summary>
+        /// The on watchdog.
+        /// </summary>
+        protected override void OnWatchdog()
+        {
+            if (this.ParentProcess.HasExited && ! this.parentProcessExited)
+            {
+                this.parentProcessExited = true;
+                this.RaiseProcessStateChangedEvent(ProcessStateChangedEnum.ParentExited, null);
+                if (this.ShutdownOnParentExit)
+                {
+                    this.TriggerShutdown = true;
+                }
+            }
+            else
+            {
+                if (!this.watchdogTimeout && this.lastTimeAlive + this.WatchdogTimeout < DateTime.Now)
+                {
+                    this.watchdogTimeout = true;
+                    this.RaiseProcessStateChangedEvent(ProcessStateChangedEnum.WatchdogTimeout, null);
+                }
+            }
+
+            if (this.TriggerShutdown && ! this.Shutdown)
+            {
+                this.Shutdown = true;
+                this.RaiseProcessStateChangedEvent(ProcessStateChangedEnum.ChildShutdown, null);
+            }
+
+            if (this.ipcChannelAvailable && !this.ipcChannelAvailableMsgSend)
+            {
+                this.ipcChannelAvailableMsgSend = true;
+                this.RaiseProcessStateChangedEvent(ProcessStateChangedEnum.IpcChannelAvail, null);
+            }
+
+            bool sendAliveMessages = this.LastAliveMessage + this.AliveMessageFrquency < DateTime.Now;
+            if (!this.parentProcessExited && sendAliveMessages)
+            {
+                try
+                {
+                    this.ipcChannel.ChildAlive(this.CurrentProcess.Id);
+                    this.LastAliveMessage = DateTime.Now;
+                }
+                catch (EndpointNotFoundException)
+                {
+                    this.ResetIpcChannel();
+                }
+                catch (CommunicationObjectFaultedException)
+                {
+                    this.ResetIpcChannel();
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
         }
 
         /// <summary>
@@ -386,10 +395,10 @@ namespace ChildProcesses
         }
 
         /// <summary>
-        /// The create channel factory.
+        ///     The create channel factory.
         /// </summary>
         /// <returns>
-        /// The <see cref="ChannelFactory"/>.
+        ///     The <see cref="ChannelFactory" />.
         /// </returns>
         private ChannelFactory CreateChannelFactory()
         {
@@ -398,17 +407,11 @@ namespace ChildProcesses
 
             this.ParentCallbackEndpoint = (ParentChildIpc)Activator.CreateInstance(this.GetParentChildIpcType());
             this.ParentCallbackEndpoint.ChildProcessInstance = this;
-            
+
             var binding = new NetNamedPipeBinding();
             binding.Security.Mode = NetNamedPipeSecurityMode.None;
 
-            return
-                (ChannelFactory)
-                    Activator.CreateInstance(
-                        channelFactoryType, 
-                        this.ParentCallbackEndpoint,
-                        binding, 
-                        new EndpointAddress("net.pipe://localhost/" + this.GetIpcUrlPrefix() + "/" + this.ParentProcess.Id + "/ParentChildIpc"));
+            return (ChannelFactory)Activator.CreateInstance(channelFactoryType, this.ParentCallbackEndpoint, binding, new EndpointAddress("net.pipe://localhost/" + this.GetIpcUrlPrefix() + ipcChannelDynamicUrlPart + "/" + this.ParentProcess.Id + "/ParentChildIpc"));
         }
 
         /// <summary>
@@ -420,16 +423,16 @@ namespace ChildProcesses
             {
                 if (this.ParentProcess != null)
                 {
-                    if (ipcChannel != null)
+                    if (this.ipcChannel != null)
                     {
-                        ((IChannel)ipcChannel).Abort();
-                        ipcChannel = null;
+                        ((IChannel)this.ipcChannel).Abort();
+                        this.ipcChannel = null;
                     }
 
-                    if (ipcChannelFactory != null)
+                    if (this.ipcChannelFactory != null)
                     {
-                        ipcChannelFactory.Abort();
-                        ipcChannelFactory = null;
+                        this.ipcChannelFactory.Abort();
+                        this.ipcChannelFactory = null;
                     }
 
                     this.ipcChannelFactory = this.CreateChannelFactory();

@@ -3,7 +3,7 @@
 //   Copyright 2012 by Maierhofer Software, Germany
 // </copyright>
 // <summary>
-//   TODO: Update summary.
+//   The Child Process represents the child process on the parent. It is manages by a <see cref="ChildProcessManager" />
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -12,9 +12,8 @@ namespace ChildProcesses
     using System;
     using System.Diagnostics;
 
-
     /// <summary>
-    /// The Child Process represents the child process on the parent. It is manages by a <see cref="ChildProcessManager"/>
+    ///     The Child Process represents the child process on the parent. It is manages by a <see cref="ChildProcessManager" />
     /// </summary>
     public class ChildProcess
     {
@@ -26,26 +25,24 @@ namespace ChildProcesses
         internal DateTime lastTimeAlive;
 
         /// <summary>
-        ///     The watchdog timeout.
-        /// </summary>
-        internal bool watchdogTimeout;
-
-
-        /// <summary>
         ///     The ipc channel avail.
         /// </summary>
         internal bool parentChildIpcChannelAvail;
 
         /// <summary>
-        ///     The parent child ipc lock.
+        ///     The watchdog timeout.
         /// </summary>
-        private object parentChildIpcLock = new object();
+        internal bool watchdogTimeout;
 
         /// <summary>
         ///     The parent child ipc.
         /// </summary>
         private IParentChildIpc parentChildIpc;
 
+        /// <summary>
+        ///     The parent child ipc lock.
+        /// </summary>
+        private object parentChildIpcLock = new object();
 
         #endregion
 
