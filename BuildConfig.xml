@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Build configuration for ChildProcesses -->
+<BuildConfig
+  xmlns="http://www.crawler-lib.net/buildtools"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.crawler-lib.net buildconfig.xsd"
+  >
+
+  <Solutions>
+    <Solution Base ="" Path="ChildProcesses.sln" Version="1.1">
+
+      <Repository Type="HG" Url ="http://buildtools:bt1966@buildserver:8010/scm/hg/General/ChildProcesses" />
+      
+      <Test>
+        <Settings Tool="FxCop" Assembly="ChildProcesses\bin\Release\ChildProcesses.dll" Output="FxCop-ChildProcesses.xml"/>
+      </Test>
+
+      <Release server="ftp://buildtools:bt1966@buildserver">
+        <File Path="ChildProcesses\bin\Release\ChildProcesses.dll" Zipped="ChildProcesses.dll" Version="true"/>
+        <File Path="ChildProcesses\bin\Release\ChildProcesses.pdb" Zipped="ChildProcesses.pdb" Version="false"/>
+
+        <File Path="ChildProcesses.VisualStudioDebug\bin\Release\ChildProcesses.VisualStudioDebug.dll" Zipped="ChildProcesses.VisualStudioDebug.dll"          Version="true"/>
+        <File Path="ChildProcesses.VisualStudioDebug\bin\Release\ChildProcesses.VisualStudioDebug.pdb" Zipped="ChildProcesses.VisualStudioDebug.pdb"          Version="false"/>
+      </Release>
+
+      <Nuget feed="http://buildserver:8000/" apiKey="ca6dfcfa-d08e-4f56-921e-74afc654dc4f">
+        <Package Path="ChildProcesses\ChildProcesses.nuspec" />
+        <Package Path="ChildProcesses.VisualStudioDebug\ChildProcesses.VisualStudioDebug.nuspec" />
+      </Nuget>
+    </Solution>
+
+  </Solutions>
+</BuildConfig>

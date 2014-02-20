@@ -1,10 +1,11 @@
-# Actual Template under http://wiki.maierhofer.de/Mercurial-VCS-Main.ashx
+# Actual template under http://buildserver:8040/redmine/projects/software-developement/wiki/Mercurial_hgignore_file
 syntax: glob
 
 # File Types
 *.obj
 *.pdb
 *.user
+*.userprefs
 *.aps
 *.pch
 *.vspscc
@@ -29,12 +30,19 @@ syntax: glob
 *.zip
 *.7z
 *.nupkg
+*.dia~
+*.shfbproj_*
+*.orig
 [Tt]est[Rr]esult*
 [Bb]uild[Ll]og.*
+CurrentBuild.*
+FxCop*.xml
+NUnit*.xml
 
 # Files
 [Tt]humbs.db
 StyleCop.Cache
+UpgradeLog.XML
 
 # Folders
 [Bb]in/
@@ -47,3 +55,5 @@ ipch/
 [Rr]elease*/*
 _ReSharper*/*
 [Hh]elp/*
+CodeAnalyst/*
+_UpgradeReport*/*
