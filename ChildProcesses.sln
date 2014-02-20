@@ -17,8 +17,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2EE9B37B-EB86-48BF-BD26-BE7C0AE0C0F7}"
 	ProjectSection(SolutionItems) = preProject
 		BuildConfig.xml = BuildConfig.xml
-		NugetPackages.csv = NugetPackages.csv
-		ReleaseFiles.csv = ReleaseFiles.csv
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChildProcesses.VisualStudioDebug", "ChildProcesses.VisualStudioDebug\ChildProcesses.VisualStudioDebug.csproj", "{55BBBB6D-FE95-448C-A3C3-2316AC922A55}"
