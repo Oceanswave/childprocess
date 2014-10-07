@@ -55,10 +55,12 @@
  
         <!-- Specify the build steps to publish the current build -->
         <BuildSequence Name="Publish-Build" NewBuild="false" Depends="Complete-Build">
-          <NuGetPush Path="ChildProcesses.$($context.PackageVersion).nupkg" Feed="$($context.Credentials.TestFeed)" ApiKey="$()"/>
+          <NuGetPush Path="ChildProcesses.$($context.PackageVersion).nupkg" Feed="$($context.Credentials.NuGetPublicGalleryFeed)" ApiKey="$($context.Credentials.NuGetPublicGalleryApiKey)"/>
+          <NuGetPush Path="ChildProcesses.VisualStudioDebug.$($context.PackageVersion).nupkg" Feed="$($context.Credentials.NuGetPublicGalleryFeed)" ApiKey="$($context.Credentials.NuGetPublicGalleryApiKey)"/>
         </BuildSequence>
 
         <BuildSequence Name="Test-Publish" NewBuild="false" Depends="Complete-Build">
+          <DumpContext/>
           <NuGetPush Path="ChildProcesses.$($context.PackageVersion).nupkg" Feed="$($context.Credentials.NuGetTestFeed)" ApiKey="$($context.Credentials.NuGetTestApiKey)"/>
           <NuGetPush Path="ChildProcesses.VisualStudioDebug.$($context.PackageVersion).nupkg" Feed="$($context.Credentials.NuGetTestFeed)" ApiKey="$($context.Credentials.NuGetTestApiKey)"/>
         </BuildSequence>
