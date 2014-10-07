@@ -45,6 +45,8 @@ StyleCop.Cache
 UpgradeLog.XML
 
 # Folders
+*/Artifacts/
+Artifacts/
 [Bb]in/
 [Dd]ebug*/
 [Oo]bj/

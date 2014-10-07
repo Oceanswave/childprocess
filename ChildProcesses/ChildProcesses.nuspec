@@ -3,7 +3,7 @@
   <metadata>
     <id>ChildProcesses</id>
     <title>ChildProcesses - Child Process Management for .NET</title>
-    <version>1.1.5164.14616</version>
+    <version>1.2.5392.43052</version>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>
       ChildProcesses is a child process management library for the .NET Framework.
@@ -13,6 +13,9 @@
       It is also possible to mix 32Bit and 64 Bit processes.
     </description>
     <summary>ChildProcesses is a child process management library for the .NET framework.</summary>
+    <licenseUrl>http://www.crawler-lib.net/child-processes/</licenseUrl>
+    <projectUrl>http://www.crawler-lib.net/child-processes</projectUrl>
+    <iconUrl>http://download.crawler-lib.net/Logos/Crawler-Lib-Child-Processes-128.png</iconUrl>
     <releaseNotes>
       Release 1.0.4 breaking changes:
 
@@ -25,10 +28,11 @@
     <copyright>Copyright by Thomas Maierhofer</copyright>
     <authors>Thomas Maierhofer</authors>
     <owners>Thomas Maierhofer</owners>
-    <tags>childprocess process spawn child parent AppDomain kill</tags>
+    <tags>childprocess process spawn child parent appdomain kill</tags>
   </metadata>
   <files>
     <file src="bin\Release\ChildProcesses.dll" target="lib\net\ChildProcesses.dll" />
     <file src="bin\Release\ChildProcesses.pdb" target="lib\net\ChildProcesses.pdb" />
+    <file src="bin\Release\ChildProcesses.xml" target="lib\net\ChildProcesses.xml" />
   </files>
 </package>

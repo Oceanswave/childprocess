@@ -1,33 +1,72 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Build configuration for ChildProcesses -->
-<BuildConfig
-  xmlns="http://www.crawler-lib.net/buildtools"
+<?xml version="1.0" encoding="utf-8"?>
+ 
+<!-- Build Configuration for Child Processes-->
+<BuildConfig xmlns="http://www.crawler-lib.net/build-tools"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://www.crawler-lib.net buildconfig.xsd"
-  >
-
+  xsi:schemaLocation="http://www.crawler-lib.net/build-tools http://download.crawler-lib.net/BuildTools/BuildConfig.xsd?action=view">
+ 
+  <!-- Specify the artifacts and current build XML file location and name-->
+  <CurrentBuild/>
+ 
+  <!-- Specify the label generation mechanism for new builds -->
+  <Label>
+    <BuildRevisionTimestamp/>
+  </Label>
+ 
+  <!-- Specify credentials (passwords, keys, URLs, ...) to use in the build steps with $($context.Creadentails.KeyName) -->
+  <Credentials>
+    <GlobalCredentials/>
+  </Credentials>
+ 
   <Solutions>
-    <Solution Base ="" Path="ChildProcesses.sln" Version="1.1">
+    <!-- Solution to build -->
+    <Solution Name="ChildProcesses">
+ 
+      <!-- Specify the version generation mechanism for new builds -->
+      <Version>
+        <!-- AppendLabel appends the build label to create the version. The build label must be in the format Build.Revision -->
+        <AppendLabel>1.2</AppendLabel>
+      </Version>
+ 
+      <!-- Build Sequences are lists of build steps that can be executed. It is a good practice to implement the sequences New-Build, Test-Build, Complete-Build and Publish-Build -->
+      <BuildSequences>
+        <!-- Specify the build steps to perform a new build -->
+        <BuildSequence Name="New-Build">
+          <MSBuild Path="ChildProcesses.sln" Configuration="Release" Platform="Any CPU"/>
+          <VerifyFile Path="ChildProcesses\bin\Release\ChildProcesses.dll" FileVersion="true" ProductVersion="true" New="true" />
+          <VerifyFile Path="ChildProcesses\bin\Release\ChildProcesses.pdb" FileVersion="false" ProductVersion="false" New="true" />
+        </BuildSequence>
+ 
+        <!-- Specify the build steps to test the current build -->
+        <BuildSequence Name="Test-Build" NewBuild="false" Depends="New-Build">
+          <FxCop Path="ChildProcesses\bin\Release\ChildProcesses.dll"/>
+        </BuildSequence>
+ 
+        <!-- Specify the build steps to complete the current build -->
+        <BuildSequence Name="Complete-Build" NewBuild="false" Depends="Test-Build">
+          <NuSpecUpdate>
+            <NuSpec Path="ChildProcesses\ChildProcesses.nuspec"/>
+            <NuSpec Path="ChildProcesses.VisualStudioDebug\ChildProcesses.VisualStudioDebug.nuspec"/>
+          </NuSpecUpdate>
+          <NuGetPack Path="ChildProcesses\ChildProcesses.nuspec"/>
+          <NuGetPack Path="ChildProcesses.VisualStudioDebug\ChildProcesses.VisualStudioDebug.nuspec"/>
+        </BuildSequence>
+ 
+ 
+        <!-- Specify the build steps to publish the current build -->
+        <BuildSequence Name="Publish-Build" NewBuild="false" Depends="Complete-Build">
+          <NuGetPush Path="ChildProcesses.$($context.PackageVersion).nupkg" Feed="$($context.Credentials.TestFeed)" ApiKey="$()"/>
+        </BuildSequence>
 
-      <Repository Type="HG" Url ="http://buildtools:bt1966@buildserver:8010/scm/hg/General/ChildProcesses" />
-      
-      <Test>
-        <Settings Tool="FxCop" Assembly="ChildProcesses\bin\Release\ChildProcesses.dll" Output="FxCop-ChildProcesses.xml"/>
-      </Test>
+        <BuildSequence Name="Test-Publish" NewBuild="false" Depends="Complete-Build">
+          <NuGetPush Path="ChildProcesses.$($context.PackageVersion).nupkg" Feed="$($context.Credentials.NuGetTestFeed)" ApiKey="$($context.Credentials.NuGetTestApiKey)"/>
+          <NuGetPush Path="ChildProcesses.VisualStudioDebug.$($context.PackageVersion).nupkg" Feed="$($context.Credentials.NuGetTestFeed)" ApiKey="$($context.Credentials.NuGetTestApiKey)"/>
+        </BuildSequence>
 
-      <Release server="ftp://buildtools:bt1966@buildserver">
-        <File Path="ChildProcesses\bin\Release\ChildProcesses.dll" Zipped="ChildProcesses.dll" Version="true"/>
-        <File Path="ChildProcesses\bin\Release\ChildProcesses.pdb" Zipped="ChildProcesses.pdb" Version="false"/>
 
-        <File Path="ChildProcesses.VisualStudioDebug\bin\Release\ChildProcesses.VisualStudioDebug.dll" Zipped="ChildProcesses.VisualStudioDebug.dll"          Version="true"/>
-        <File Path="ChildProcesses.VisualStudioDebug\bin\Release\ChildProcesses.VisualStudioDebug.pdb" Zipped="ChildProcesses.VisualStudioDebug.pdb"          Version="false"/>
-      </Release>
 
-      <Nuget feed="http://buildserver:8000/" apiKey="ca6dfcfa-d08e-4f56-921e-74afc654dc4f">
-        <Package Path="ChildProcesses\ChildProcesses.nuspec" />
-        <Package Path="ChildProcesses.VisualStudioDebug\ChildProcesses.VisualStudioDebug.nuspec" />
-      </Nuget>
+      </BuildSequences>
     </Solution>
-
   </Solutions>
+ 
 </BuildConfig>

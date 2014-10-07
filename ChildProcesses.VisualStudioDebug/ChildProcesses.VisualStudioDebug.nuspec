@@ -3,7 +3,7 @@
   <metadata>
     <id>ChildProcesses.VisualStudioDebug</id>
     <title>Visual Studio Debug Helper for ChildProcesses (Child Process Management for .NET)</title>
-    <version>1.1.5164.14616</version>
+    <version>1.2.5392.43052</version>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Visual Studio Debug Helper for ChildProcesses attaches the Visual Studio debugger automatically to any started child process with the ChildProcesses library.</description>
     <summary>Visual Studio Debug Helper for ChildProcesses attaches the Visual Studio debugger automatically to any started child process of the ChildProcess library.</summary>
@@ -11,12 +11,12 @@
     <copyright>Copyright by Thomas Maierhofer</copyright>
     <authors>Thomas Maierhofer</authors>
     <owners>Thomas Maierhofer</owners>
-    <tags>childprocess debugger DTE process spawn child parent AppDomain kill</tags>
-    <licenseUrl>http://childprocess.codeplex.com/</licenseUrl>
-    <projectUrl>http://wiki.maierhofer.de/project-child-process.ashx</projectUrl>
-    <!--<iconUrl></iconUrl>-->
+    <tags>childprocess debugger DTE process spawn child parent appdomain kill visualstudio</tags>
+    <licenseUrl>http://www.crawler-lib.net/child-processes/</licenseUrl>
+    <projectUrl>http://www.crawler-lib.net/child-processes</projectUrl>
+    <iconUrl>http://download.crawler-lib.net/Logos/Crawler-Lib-Child-Processes-128.png</iconUrl>
     <dependencies>
-      <dependency id="ChildProcesses" version="1.1.5164.14616" />
+      <dependency id="ChildProcesses" version="1.2.5392.43052" />
     </dependencies>
   </metadata>
   <files>
