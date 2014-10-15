@@ -3,7 +3,7 @@
   <metadata>
     <id>ChildProcesses.VisualStudioDebug</id>
     <title>Visual Studio Debug Helper for ChildProcesses (Child Process Management for .NET)</title>
-    <version>1.2.5392.43052</version>
+    <version>1.2.5401.23935</version>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Visual Studio Debug Helper for ChildProcesses attaches the Visual Studio debugger automatically to any started child process with the ChildProcesses library.</description>
     <summary>Visual Studio Debug Helper for ChildProcesses attaches the Visual Studio debugger automatically to any started child process of the ChildProcess library.</summary>
@@ -16,12 +16,13 @@
     <projectUrl>http://www.crawler-lib.net/child-processes</projectUrl>
     <iconUrl>http://download.crawler-lib.net/Logos/Crawler-Lib-Child-Processes-128.png</iconUrl>
     <dependencies>
-      <dependency id="ChildProcesses" version="1.2.5392.43052" />
+      <dependency id="ChildProcesses" version="1.2.5401.23935" />
     </dependencies>
   </metadata>
   <files>
     <file src="bin\Release\ChildProcesses.VisualStudioDebug.dll" target="lib\net\ChildProcesses.dll" />
     <file src="bin\Release\ChildProcesses.VisualStudioDebug.pdb" target="lib\net\ChildProcesses.pdb" />
+    <file src="bin\Release\ChildProcesses.VisualStudioDebug.xml" target="lib\net\ChildProcesses.xml" />
     <file src="readme.txt" target="" />
   </files>
 </package>

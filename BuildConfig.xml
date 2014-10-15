@@ -32,9 +32,16 @@
       <BuildSequences>
         <!-- Specify the build steps to perform a new build -->
         <BuildSequence Name="New-Build">
+          <Autover Path="ChildProcesses.sln"/>
+          
           <MSBuild Path="ChildProcesses.sln" Configuration="Release" Platform="Any CPU"/>
           <VerifyFile Path="ChildProcesses\bin\Release\ChildProcesses.dll" FileVersion="true" ProductVersion="true" New="true" />
           <VerifyFile Path="ChildProcesses\bin\Release\ChildProcesses.pdb" FileVersion="false" ProductVersion="false" New="true" />
+          <VerifyFile Path="ChildProcesses\bin\Release\ChildProcesses.xml" FileVersion="false" ProductVersion="false" New="true" />
+
+          <VerifyFile Path="ChildProcesses.VisualStudioDebug\bin\Release\ChildProcesses.VisualStudioDebug.dll" FileVersion="true" ProductVersion="true" New="true" />
+          <VerifyFile Path="ChildProcesses.VisualStudioDebug\bin\Release\ChildProcesses.VisualStudioDebug.pdb" FileVersion="false" ProductVersion="false" New="true" />
+          <VerifyFile Path="ChildProcesses.VisualStudioDebug\bin\Release\ChildProcesses.VisualStudioDebug.xml" FileVersion="false" ProductVersion="false" New="true" />
         </BuildSequence>
  
         <!-- Specify the build steps to test the current build -->
