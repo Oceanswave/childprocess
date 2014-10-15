@@ -11,7 +11,7 @@
     <copyright>Copyright by Thomas Maierhofer</copyright>
     <authors>Thomas Maierhofer</authors>
     <owners>Thomas Maierhofer</owners>
-    <tags>childprocess debugger DTE process spawn child parent appdomain kill visualstudio</tags>
+    <tags>childprocess debugger DTE start commandline cmd process ipc spawn exec child parent appdomain kill visualstudio</tags>
     <licenseUrl>http://www.crawler-lib.net/child-processes/</licenseUrl>
     <projectUrl>http://www.crawler-lib.net/child-processes</projectUrl>
     <iconUrl>http://download.crawler-lib.net/Logos/Crawler-Lib-Child-Processes-128.png</iconUrl>

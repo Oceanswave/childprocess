@@ -28,7 +28,7 @@
     <copyright>Copyright by Thomas Maierhofer</copyright>
     <authors>Thomas Maierhofer</authors>
     <owners>Thomas Maierhofer</owners>
-    <tags>childprocess process spawn child parent appdomain kill</tags>
+    <tags>childprocess ipc start cmd commandline process spawn exec child parent appdomain kill</tags>
   </metadata>
   <files>
     <file src="bin\Release\ChildProcesses.dll" target="lib\net\ChildProcesses.dll" />

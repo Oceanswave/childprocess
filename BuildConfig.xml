@@ -65,8 +65,6 @@
           <NuGetPush Path="ChildProcesses.VisualStudioDebug.$($context.PackageVersion).nupkg" Feed="$($context.Credentials.NuGetTestFeed)" ApiKey="$($context.Credentials.NuGetTestApiKey)"/>
         </BuildSequence>
 
-
-
       </BuildSequences>
     </Solution>
   </Solutions>
